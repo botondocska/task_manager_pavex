@@ -1,0 +1,21 @@
+# This file contains the configuration for the dev environment.
+# None of the values here are actually secret, so it's fine
+# to commit this file to the repository.
+server:
+  ip: "127.0.0.1"
+  port: 8000
+
+database:
+  database_url: "sqlite:./data/app.db"
+  create_if_missing: true
+
+auth:
+  eddsa_private_key_pem: |
+    -----BEGIN PRIVATE KEY-----
+    MC4CAQAwBQYDK2VwBCIEIGNOeHWvadX6tAwDzjIBixqg7fa2qGdNc3r3cvwsgjL8
+    -----END PRIVATE KEY-----
+  eddsa_public_key_pem: |
+    -----BEGIN PUBLIC KEY-----
+    MCowBQYDK2VwAyEAtb6FDrvpEkB2kXTbV5njWrYpfn/EXxAR0sOCgF8aCGg=
+    -----END PUBLIC KEY-----
+

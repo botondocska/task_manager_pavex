@@ -1,0 +1,36 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition.workspace = true
+
+[[bin]]
+path = "src/bin/bp.rs"
+name = "bp"
+
+[lints.rust]
+# `pavex_ide_hint` is used in Pavex's `f!` macro to "nudge" the IDE
+# and force it to provide completions and "go-to-definition" correctly
+# for the paths passed to the `f!` macro.
+# It must be allowed in all local crates that use `f!`.
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(pavex_ide_hint)'] }
+
+[dependencies]
+cargo_px_env = "0.1"
+humantime-serde = "1.1"
+pavex = { version = "0.2.10" }
+pavex_tracing = { version = "0.2.10" }
+pavex_cli_client = { version = "0.2.10" }
+tracing = "0.1"
+tracing_log_error = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde-aux = "4"
+workspace_hack = { path = "../workspace_hack" }
+jsonwebtoken = { version = "9", features = ["use_pem"] }
+secrecy = { version = "0.8", features = ["serde"] }
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "migrate", "uuid", "macros", "sqlite", "time"] }
+anyhow = "1.0.103"
+uuid = { version = "1.23.4", features = ["serde", "v4"] }
+argon2 = "0.5.3"
+rand = "0.8"
+thiserror = "2"
+tokio = "1.52.3"

@@ -1,0 +1,200 @@
+use crate::helpers::TestApi;
+use pavex::http::StatusCode;
+use serde_json::json;
+
+// --- Signup ---
+
+#[tokio::test]
+async fn signup_works() {
+    let api = TestApi::spawn().await;
+
+    let response = api
+        .post_signup(&json!({
+            "user": {
+                "username": "alice",
+                "email": "alice@example.com",
+                "password": "hunter22",
+            }
+        }))
+        .await;
+
+    assert_eq!(response.status().as_u16(), StatusCode::CREATED.as_u16());
+}
+
+#[tokio::test]
+async fn signup_returns_jwt_token() {
+    let api = TestApi::spawn().await;
+
+    let response = api
+        .post_signup(&json!({
+            "user": {
+                "username": "alice",
+                "email": "alice@example.com",
+                "password": "hunter22",
+            }
+        }))
+        .await;
+
+    let body: serde_json::Value = response.json().await.expect("Failed to parse response body");
+    assert!(!body["user"]["token"].as_str().unwrap_or("").is_empty());
+}
+
+#[tokio::test]
+async fn signup_returns_user_details() {
+    let api = TestApi::spawn().await;
+
+    let response = api
+        .post_signup(&json!({
+            "user": {
+                "username": "alice",
+                "email": "alice@example.com",
+                "password": "hunter22",
+            }
+        }))
+        .await;
+
+    let body: serde_json::Value = response.json().await.expect("Failed to parse response body");
+    assert_eq!(body["user"]["email"], "alice@example.com");
+    assert_eq!(body["user"]["username"], "alice");
+}
+
+#[tokio::test]
+async fn signup_duplicate_email_returns_conflict() {
+    let api = TestApi::spawn().await;
+
+    let body = json!({
+        "user": {
+            "username": "alice",
+            "email": "alice@example.com",
+            "password": "hunter22",
+        }
+    });
+
+    api.post_signup(&body).await;
+    let response = api.post_signup(&json!({
+        "user": {
+            "username": "alice2",
+            "email": "alice@example.com",  // same email, different username
+            "password": "hunter22",
+        }
+    })).await;
+
+    assert_eq!(response.status().as_u16(), StatusCode::CONFLICT.as_u16());
+}
+
+#[tokio::test]
+async fn signup_duplicate_username_returns_conflict() {
+    let api = TestApi::spawn().await;
+
+    api.post_signup(&json!({
+        "user": {
+            "username": "alice",
+            "email": "alice@example.com",
+            "password": "hunter22",
+        }
+    })).await;
+
+    let response = api.post_signup(&json!({
+        "user": {
+            "username": "alice",            // same username, different email
+            "email": "alice2@example.com",
+            "password": "hunter22",
+        }
+    })).await;
+
+    assert_eq!(response.status().as_u16(), StatusCode::CONFLICT.as_u16());
+}
+
+// --- Login ---
+
+#[tokio::test]
+async fn login_works() {
+    let api = TestApi::spawn().await;
+
+    api.post_signup(&json!({
+        "user": {
+            "username": "alice",
+            "email": "alice@example.com",
+            "password": "hunter22",
+        }
+    }))
+    .await;
+
+    let response = api
+        .post_login(&json!({
+            "user": {
+                "email": "alice@example.com",
+                "password": "hunter22",
+            }
+        }))
+        .await;
+
+    assert_eq!(response.status().as_u16(), StatusCode::OK.as_u16());
+}
+
+#[tokio::test]
+async fn login_returns_jwt_token() {
+    let api = TestApi::spawn().await;
+
+    api.post_signup(&json!({
+        "user": {
+            "username": "alice",
+            "email": "alice@example.com",
+            "password": "hunter22",
+        }
+    }))
+    .await;
+
+    let response = api
+        .post_login(&json!({
+            "user": {
+                "email": "alice@example.com",
+                "password": "hunter22",
+            }
+        }))
+        .await;
+
+    let body: serde_json::Value = response.json().await.expect("Failed to parse response body");
+    assert!(!body["user"]["token"].as_str().unwrap_or("").is_empty());
+}
+
+#[tokio::test]
+async fn login_wrong_password_returns_401() {
+    let api = TestApi::spawn().await;
+
+    api.post_signup(&json!({
+        "user": {
+            "username": "alice",
+            "email": "alice@example.com",
+            "password": "hunter22",
+        }
+    }))
+    .await;
+
+    let response = api
+        .post_login(&json!({
+            "user": {
+                "email": "alice@example.com",
+                "password": "wrongpassword",
+            }
+        }))
+        .await;
+
+    assert_eq!(response.status().as_u16(), StatusCode::UNAUTHORIZED.as_u16());
+}
+
+#[tokio::test]
+async fn login_unknown_email_returns_401() {
+    let api = TestApi::spawn().await;
+
+    let response = api
+        .post_login(&json!({
+            "user": {
+                "email": "nobody@example.com",
+                "password": "hunter22",
+            }
+        }))
+        .await;
+
+    assert_eq!(response.status().as_u16(), StatusCode::UNAUTHORIZED.as_u16());
+}
