@@ -1123,6 +1123,7 @@ dependencies = [
  "syn",
  "tree-sitter",
  "tree-sitter-html",
+ "workspace_hack",
 ]
 
 [[package]]

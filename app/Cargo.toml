@@ -24,7 +24,7 @@ tracing = "0.1"
 tracing_log_error = "0.1"
 serde = { version = "1", features = ["derive"] }
 serde-aux = "4"
-workspace_hack = { path = "../workspace_hack" }
+workspace_hack = { version = "0.1", path = "../workspace_hack" }
 jsonwebtoken = { version = "9", features = ["use_pem"] }
 secrecy = { version = "0.8", features = ["serde"] }
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "migrate", "uuid", "macros", "sqlite", "time"] }

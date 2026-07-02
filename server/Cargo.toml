@@ -25,7 +25,7 @@ pavex = { version = "0.2.10" }
 tokio = { version = "1", features = ["full"] }
 server_sdk = { path = "../server_sdk" }
 app = { path = "../app" }
-workspace_hack = { path = "../workspace_hack" }
+workspace_hack = { version = "0.1", path = "../workspace_hack" }
 
 
 [dev-dependencies]
