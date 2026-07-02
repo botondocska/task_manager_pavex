@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE users SET\n            email         = COALESCE(?, email),\n            username      = COALESCE(?, username),\n            password_hash = COALESCE(?, password_hash),\n            bio           = COALESCE(?, bio),\n            image         = COALESCE(?, image),\n            updated_at    = datetime('now')\n        WHERE id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "deacce6461c6b0c9df349bace481556f083be654d25d0443ffca35322d01f725"
+}
