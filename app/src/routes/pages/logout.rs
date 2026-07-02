@@ -5,7 +5,7 @@ use pavex_session::Session;
 pub async fn logout(session: &mut Session<'_>) -> Response {
     session.invalidate();
     // redirect to login
-    Response::see_other().append_header(
+    Response::see_other().insert_header(
         pavex::http::header::LOCATION,
         HeaderValue::from_static("/login"),
     )

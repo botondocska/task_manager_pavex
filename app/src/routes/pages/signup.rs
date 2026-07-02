@@ -13,7 +13,7 @@ struct SignupPage;
 #[hx_get(path = "/signup", template = "signup.html")]
 pub fn signup_page() -> Response {
     let html = SignupPage.render().expect("template render failed");
-    Response::ok().set_typed_body(html).append_header(
+    Response::ok().set_typed_body(html).insert_header(
         pavex::http::header::CONTENT_TYPE,
         HeaderValue::from_static("text/html; charset=utf-8"),
     )
@@ -75,7 +75,7 @@ fn render_success(username: String) -> Response {
     }
     .render()
     .expect("render failed");
-    Response::ok().set_typed_body(html).append_header(
+    Response::ok().set_typed_body(html).insert_header(
         pavex::http::header::CONTENT_TYPE,
         HeaderValue::from_static("text/html; charset=utf-8"),
     )
@@ -89,7 +89,7 @@ fn render_error(msg: String) -> Response {
     }
     .render()
     .expect("render failed");
-    Response::ok().set_typed_body(html).append_header(
+    Response::ok().set_typed_body(html).insert_header(
         pavex::http::header::CONTENT_TYPE,
         HeaderValue::from_static("text/html; charset=utf-8"),
     )

@@ -1,6 +1,6 @@
-use crate::routes::{api_router, router};
 use crate::telemetry;
-use pavex::{Blueprint, blueprint::from};
+use pavex::{Blueprint, blueprint::from, cookie::INJECT_RESPONSE_COOKIES};
+use pavex_session::FINALIZE_SESSION;
 
 /// The main blueprint, defining all the components used in this API.
 pub fn blueprint() -> Blueprint {
@@ -17,8 +17,9 @@ pub fn blueprint() -> Blueprint {
     ]);
 
     telemetry::instrument(&mut bp);
-    router(&mut bp);
-    bp.prefix("/api").routes(from![crate]);
-    api_router(&mut bp);
+    bp.post_process(FINALIZE_SESSION);
+    bp.post_process(INJECT_RESPONSE_COOKIES);
+    bp.routes(from![crate::routes::pages]);
+    bp.prefix("/api").routes(from![crate::routes::users]);
     bp
 }

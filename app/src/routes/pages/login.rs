@@ -65,7 +65,7 @@ pub async fn login_submit(
 }
 
 fn html_response(html: String) -> Response {
-    Response::ok().set_typed_body(html).append_header(
+    Response::ok().set_typed_body(html).insert_header(
         pavex::http::header::CONTENT_TYPE,
         HeaderValue::from_static("text/html; charset=utf-8"),
     )
