@@ -1,3 +1,3 @@
 mod helpers;
-mod users;
 mod pages;
+mod users;

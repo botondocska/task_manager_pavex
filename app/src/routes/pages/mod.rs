@@ -1,8 +1,7 @@
-mod signup;
 mod login;
 mod logout;
+mod signup;
 
-
-pub use signup::*;
 pub use login::*;
 pub use logout::*;
+pub use signup::*;

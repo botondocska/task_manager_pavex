@@ -1,10 +1,10 @@
+use crate::routes::users::password::validate_credentials;
 use askama::Template;
-use pavex::{Response, request::body::UrlEncodedBody, http::HeaderValue};
+use htmx_macro::{hx_get, hx_post};
+use pavex::{Response, http::HeaderValue, request::body::UrlEncodedBody};
 use pavex_session::Session;
 use secrecy::Secret;
 use sqlx::SqlitePool;
-use crate::routes::users::password::validate_credentials;
-use htmx_macro::{hx_get, hx_post};
 
 #[derive(Template)]
 #[template(path = "login.html")]
@@ -39,21 +39,34 @@ pub async fn login_submit(
 
     match validate_credentials(&email, password, db_pool).await {
         Ok(user_id) => {
-            session.insert("user_id", user_id.to_string()).await
+            session
+                .insert("user_id", user_id.to_string())
+                .await
                 .expect("Failed to insert session");
             session.cycle_id();
-            html_response(LoginResult { success: true, error_message: String::new() }
-                .render().expect("render failed"))
+            html_response(
+                LoginResult {
+                    success: true,
+                    error_message: String::new(),
+                }
+                .render()
+                .expect("render failed"),
+            )
         }
         Err(_) => html_response(
-            LoginResult { success: false, error_message: "Invalid email or password".into() }
-                .render().expect("render failed")
+            LoginResult {
+                success: false,
+                error_message: "Invalid email or password".into(),
+            }
+            .render()
+            .expect("render failed"),
         ),
     }
 }
 
 fn html_response(html: String) -> Response {
-    Response::ok()
-        .set_typed_body(html)
-        .append_header(pavex::http::header::CONTENT_TYPE, HeaderValue::from_static("text/html; charset=utf-8"))
+    Response::ok().set_typed_body(html).append_header(
+        pavex::http::header::CONTENT_TYPE,
+        HeaderValue::from_static("text/html; charset=utf-8"),
+    )
 }

@@ -2,10 +2,10 @@ use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{
+    Expr, ExprLit, Lit, MetaNameValue,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     token::Comma,
-    Expr, ExprLit, Lit, MetaNameValue,
 };
 
 // ---------------------------------------------------------------------------
@@ -30,7 +30,10 @@ impl Parse for RouteArgs {
             let key = pair.path.get_ident().map(|i| i.to_string());
             match key.as_deref() {
                 Some("template") => {
-                    if let Expr::Lit(ExprLit { lit: Lit::Str(s), .. }) = &pair.value {
+                    if let Expr::Lit(ExprLit {
+                        lit: Lit::Str(s), ..
+                    }) = &pair.value
+                    {
                         template = Some(s.value());
                     } else {
                         return Err(syn::Error::new_spanned(
@@ -40,7 +43,10 @@ impl Parse for RouteArgs {
                     }
                 }
                 Some("path") => {
-                    if let Expr::Lit(ExprLit { lit: Lit::Str(s), .. }) = &pair.value {
+                    if let Expr::Lit(ExprLit {
+                        lit: Lit::Str(s), ..
+                    }) = &pair.value
+                    {
                         path = Some(s.value());
                     }
                     pavex_pairs.push(pair.clone());
@@ -69,7 +75,11 @@ impl Parse for RouteArgs {
             ts
         };
 
-        Ok(RouteArgs { path, template, pavex_args })
+        Ok(RouteArgs {
+            path,
+            template,
+            pavex_args,
+        })
     }
 }
 
@@ -88,8 +98,7 @@ fn load_route_registry() -> Vec<Route> {
         Ok(d) => d,
         Err(_) => return vec![],
     };
-    let sdk_path =
-        std::path::Path::new(&manifest_dir).join("../server_sdk/src/lib.rs");
+    let sdk_path = std::path::Path::new(&manifest_dir).join("../server_sdk/src/lib.rs");
     let source = match std::fs::read_to_string(&sdk_path) {
         Ok(s) => s,
         Err(_) => return vec![],
@@ -113,8 +122,8 @@ fn parse_routes_from_sdk(source: &str) -> Vec<Route> {
         if trimmed.starts_with(
             "let matched_route_template = pavex::request::path::MatchedPathPattern::new(",
         ) {
-            if let Some(ref method) = current_method {
-                if let Some(next) = lines.get(i + 1) {
+            if let Some(ref method) = current_method
+                && let Some(next) = lines.get(i + 1) {
                     let path = next.trim().trim_end_matches(',').trim_matches('"');
                     if path != "*" {
                         routes.push(Route {
@@ -123,7 +132,6 @@ fn parse_routes_from_sdk(source: &str) -> Vec<Route> {
                         });
                     }
                 }
-            }
             current_method = None;
             continue;
         }
@@ -367,11 +375,10 @@ fn collect_ids_recursive(
 ) {
     if node.kind() == "start_tag" {
         for (name, val, _) in extract_attrs(node, source) {
-            if name == "id" {
-                if let Some(v) = val {
+            if name == "id"
+                && let Some(v) = val {
                     ids.insert(v);
                 }
-            }
         }
     }
     for child in node.children(&mut node.walk()) {
@@ -386,12 +393,7 @@ fn count_attr_occurrences(root: tree_sitter::Node, source: &str, attr_name: &str
     count
 }
 
-fn count_attr_recursive(
-    node: tree_sitter::Node,
-    source: &str,
-    attr_name: &str,
-    count: &mut usize,
-) {
+fn count_attr_recursive(node: tree_sitter::Node, source: &str, attr_name: &str, count: &mut usize) {
     if node.kind() == "start_tag" {
         for (name, _, _) in extract_attrs(node, source) {
             if name == attr_name {
@@ -497,7 +499,12 @@ fn validate_start_tag(
     let method_attrs: Vec<&str> = hx_attrs
         .iter()
         .map(|(n, _, _)| n.as_str())
-        .filter(|n| matches!(*n, "hx-get" | "hx-post" | "hx-put" | "hx-patch" | "hx-delete"))
+        .filter(|n| {
+            matches!(
+                *n,
+                "hx-get" | "hx-post" | "hx-put" | "hx-patch" | "hx-delete"
+            )
+        })
         .collect();
     if method_attrs.len() > 1 {
         errors.push(format!(
@@ -515,9 +522,7 @@ fn validate_start_tag(
     if has_push && has_replace {
         errors.push(format!(
             "hx-push-url and hx-replace-url both present — only one is allowed\n  --> {}:{} <{}>",
-            template_file,
-            hx_attrs[0].2,
-            tag_ctx
+            template_file, hx_attrs[0].2, tag_ctx
         ));
     }
 
@@ -535,18 +540,16 @@ fn validate_start_tag(
                 validate_route(value, &method, routes, errors, &ctx);
             }
 
-            "hx-push-url" | "hx-replace-url" => {
-                if value != "true" && value != "false" {
+            "hx-push-url" | "hx-replace-url"
+                if value != "true" && value != "false" => {
                     validate_route_path_exists(value, routes, errors, name, &ctx);
                 }
-            }
 
             // --- json checks ---
-            "hx-vals" | "hx-headers" => {
-                if !value.starts_with("js:") {
+            "hx-vals" | "hx-headers"
+                if !value.starts_with("js:") => {
                     validate_json(value, name, errors, &ctx);
                 }
-            }
 
             "hx-request" => {
                 validate_hx_request(value, errors, &ctx);
@@ -570,14 +573,13 @@ fn validate_start_tag(
                 }
             }
 
-            "hx-history" => {
-                if value != "false" {
+            "hx-history"
+                if value != "false" => {
                     errors.push(format!(
                         "hx-history: invalid value `{}` — only `false` is valid\n  --> {}",
                         value, ctx
                     ));
                 }
-            }
 
             "hx-params" => {
                 if tag_name != "form"
@@ -621,17 +623,14 @@ fn validate_start_tag(
                 validate_id_ref(name, value, ids, template_file, &ctx);
             }
 
-            "hx-select" => {
-                if value.starts_with('#') {
-                    let id = &value[1..];
-                    if !ids.contains(id) {
+            "hx-select"
+                if let Some(id) = value.strip_prefix('#')
+                    && !ids.contains(id) => {
                         errors.push(format!(
                             "{}: id `#{}` not found in template `{}`\n  --> {}",
                             name, id, template_file, ctx
                         ));
                     }
-                }
-            }
 
             "hx-select-oob" => {
                 // Comma-separated list of "#id", "#id:strategy", or "strategy:#id".
@@ -651,8 +650,8 @@ fn validate_start_tag(
                             }
                         }
                     };
-                    if let Some(strategy) = strategy_opt {
-                        if !VALID_SWAP_STRATEGIES.contains(&strategy) {
+                    if let Some(strategy) = strategy_opt
+                        && !VALID_SWAP_STRATEGIES.contains(&strategy) {
                             errors.push(format!(
                                 "hx-select-oob: invalid swap strategy `{}` — must be one of: {}\n  --> {}",
                                 strategy,
@@ -660,16 +659,13 @@ fn validate_start_tag(
                                 ctx
                             ));
                         }
-                    }
-                    if selector.starts_with('#') {
-                        let id = &selector[1..];
-                        if !ids.contains(id) {
+                    if let Some(id) = selector.strip_prefix('#')
+                        && !ids.contains(id) {
                             errors.push(format!(
                                 "hx-select-oob: id `#{}` not found in template `{}`\n  --> {}",
                                 id, template_file, ctx
                             ));
                         }
-                    }
                 }
             }
 
@@ -709,7 +705,7 @@ fn validate_start_tag(
             }
 
             // --- boost misuse ---
-            "hx-boost" => {
+            "hx-boost"
                 if value == "true"
                     && tag_name != "a"
                     && tag_name != "form"
@@ -718,13 +714,12 @@ fn validate_start_tag(
                     && tag_name != "nav"
                     && tag_name != "main"
                     && tag_name != "body"
-                {
+                => {
                     errors.push(format!(
                         "hx-boost: used on `<{}>` — only meaningful on containers or `<a>`/`<form>`\n  --> {}",
                         tag_name, ctx
                     ));
                 }
-            }
 
             _ => {}
         }
@@ -748,13 +743,7 @@ fn normalize_path(path: &str) -> &str {
     p.split('#').next().unwrap_or(p)
 }
 
-fn validate_route(
-    path: &str,
-    method: &str,
-    routes: &[Route],
-    errors: &mut Vec<String>,
-    ctx: &str,
-) {
+fn validate_route(path: &str, method: &str, routes: &[Route], errors: &mut Vec<String>, ctx: &str) {
     let path = normalize_path(path);
     if path.contains('{') {
         return;
@@ -992,28 +981,21 @@ fn validate_id_ref(
     {
         return;
     }
-    if value.starts_with('#') {
-        let id = &value[1..];
-        if !ids.contains(id) {
+    if let Some(id) = value.strip_prefix('#')
+        && !ids.contains(id) {
             // Warn, not error: id may live in a base/parent template.
             eprintln!(
                 "cargo:warning={}: id `#{}` not found in template `{}` (may be in base template)\n  --> {}",
                 attr, id, template_file, ctx
             );
         }
-    }
 }
 
 // ---------------------------------------------------------------------------
 // hx-boost child validation
 // ---------------------------------------------------------------------------
 
-fn has_attr_value(
-    node: tree_sitter::Node,
-    source: &str,
-    attr_name: &str,
-    attr_val: &str,
-) -> bool {
+fn has_attr_value(node: tree_sitter::Node, source: &str, attr_name: &str, attr_val: &str) -> bool {
     for child in node.children(&mut node.walk()) {
         if child.kind() == "start_tag" {
             for (name, val, _) in extract_attrs(child, source) {
@@ -1050,36 +1032,35 @@ fn check_boosted_children(
                         match name.as_str() {
                             "href" => href = val.clone(),
                             "action" => action = val.clone(),
-                            "method" => {
-                                method = val.as_deref().unwrap_or("get").to_uppercase()
-                            }
+                            "method" => method = val.as_deref().unwrap_or("get").to_uppercase(),
                             _ => {}
                         }
                     }
 
                     if tag_name == "a" {
-                        if let Some(href) = href {
-                            if !is_dynamic(&href) {
+                        if let Some(href) = href
+                            && !is_dynamic(&href) {
                                 let ctx = format!(
                                     "{}:{} <a href=\"{}\"> inside hx-boost",
                                     template_file, line, href
                                 );
                                 validate_route_path_exists(
-                                    &href, routes, errors, "hx-boost href", &ctx,
+                                    &href,
+                                    routes,
+                                    errors,
+                                    "hx-boost href",
+                                    &ctx,
                                 );
                             }
-                        }
-                    } else if tag_name == "form" {
-                        if let Some(action) = action {
-                            if !is_dynamic(&action) {
+                    } else if tag_name == "form"
+                        && let Some(action) = action
+                            && !is_dynamic(&action) {
                                 let ctx = format!(
                                     "{}:{} <form action=\"{}\" method=\"{}\"> inside hx-boost",
                                     template_file, line, action, method
                                 );
                                 validate_route(&action, &method, routes, errors, &ctx);
                             }
-                        }
-                    }
                 }
             }
             check_boosted_children(child, source, routes, errors, template_file);
@@ -1115,8 +1096,10 @@ fn expand_hx_route(method: &str, args: TokenStream, input: TokenStream) -> Token
     }
 
     if !errors.is_empty() {
-        let error_tokens: TokenStream2 =
-            errors.iter().map(|e| quote! { compile_error!(#e); }).collect();
+        let error_tokens: TokenStream2 = errors
+            .iter()
+            .map(|e| quote! { compile_error!(#e); })
+            .collect();
         return error_tokens.into();
     }
 

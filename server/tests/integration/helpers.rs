@@ -56,7 +56,7 @@ impl TestApi {
         // no cleanup needed, no interference with the dev DB.
         config.database.database_url = "sqlite::memory:".into();
         config.database.create_if_missing = true;
- 
+
         // Generate a fresh ed25519 keypair per test run.
         let key_pair = jwt_simple::algorithms::Ed25519KeyPair::generate();
         config.auth.eddsa_public_key_pem = key_pair.public_key().to_pem();
@@ -96,7 +96,7 @@ impl TestApi {
             .await
             .expect("Failed to execute request.")
     }
- 
+
     pub async fn post_login<Body>(&self, body: &Body) -> reqwest::Response
     where
         Body: serde::Serialize,
@@ -108,7 +108,7 @@ impl TestApi {
             .await
             .expect("Failed to execute request.")
     }
-    
+
     pub async fn get_user(&self, token: &str) -> reqwest::Response {
         self.api_client
             .get(&format!("{}/api/user", &self.api_address))
@@ -131,18 +131,24 @@ impl TestApi {
             .expect("Failed to execute request.")
     }
 
-    pub async fn signup_and_get_token(&self, username: &str, email: &str, password: &str) -> String {
-        let body = self.post_signup(&serde_json::json!({
-            "user": {
-                "username": username,
-                "email": email,
-                "password": password,
-            }
-        }))
-        .await
-        .json::<serde_json::Value>()
-        .await
-        .expect("Failed to parse signup response");
+    pub async fn signup_and_get_token(
+        &self,
+        username: &str,
+        email: &str,
+        password: &str,
+    ) -> String {
+        let body = self
+            .post_signup(&serde_json::json!({
+                "user": {
+                    "username": username,
+                    "email": email,
+                    "password": password,
+                }
+            }))
+            .await
+            .json::<serde_json::Value>()
+            .await
+            .expect("Failed to parse signup response");
 
         body["user"]["token"]
             .as_str()

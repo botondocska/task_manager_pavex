@@ -1,14 +1,13 @@
 //! Refer to Pavex's [configuration guide](https://pavex.dev/docs/guide/configuration) for more details
 //! on how to manage configuration values.
+use jsonwebtoken::{DecodingKey, EncodingKey};
 use pavex::config;
 use pavex::server::IncomingStream;
 use pavex_session::SessionStore;
 use pavex_session_sqlx::SqliteSessionStore;
-use jsonwebtoken::{DecodingKey, EncodingKey};
 use secrecy::{ExposeSecret, Secret};
 use sqlx::sqlite::SqliteConnectOptions;
 use std::str::FromStr;
-
 
 #[derive(serde::Deserialize, Debug, Clone)]
 /// Configuration for the HTTP server used to expose our API
@@ -67,7 +66,7 @@ pub struct DatabaseConfig {
     /// Set `PX_DATABASE__DATABASE_PATH` to override.
     pub database_url: String,
     /// Set via PX_DATABASE__CREATE_IF_MISSING.
-    pub create_if_missing: bool
+    pub create_if_missing: bool,
 }
 
 #[pavex::methods]
@@ -76,7 +75,7 @@ impl DatabaseConfig {
         Ok(SqliteConnectOptions::from_str(&self.database_url)?
             .create_if_missing(self.create_if_missing))
     }
- 
+
     /// Return a database connection pool.
     #[pavex::singleton(clone_if_necessary)]
     pub async fn get_pool(&self) -> Result<sqlx::SqlitePool, sqlx::Error> {
@@ -105,15 +104,15 @@ pub struct AuthConfig {
     /// The public key used to verify the signature of JWTs.
     pub eddsa_public_key_pem: String,
 }
- 
- #[pavex::methods]
+
+#[pavex::methods]
 impl AuthConfig {
     /// Return the private key to be used for JWT signing.
     #[pavex::singleton]
     pub fn encoding_key(&self) -> Result<EncodingKey, jsonwebtoken::errors::Error> {
         EncodingKey::from_ed_pem(self.eddsa_private_key_pem.expose_secret().as_bytes())
     }
-    
+
     /// Return the public key to be used for verifying the signature of JWTs.
     #[pavex::singleton]
     pub fn decoding_key(&self) -> Result<DecodingKey, jsonwebtoken::errors::Error> {

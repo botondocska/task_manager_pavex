@@ -5,7 +5,7 @@ use anyhow::Context;
 use argon2::password_hash::SaltString;
 use argon2::{Algorithm, Argon2, Params, PasswordHash, PasswordHasher, PasswordVerifier, Version};
 use secrecy::{ExposeSecret, Secret};
-use sqlx::{SqlitePool};
+use sqlx::SqlitePool;
 
 #[derive(thiserror::Error, Debug)]
 pub enum AuthError {
@@ -61,7 +61,7 @@ pub async fn validate_credentials(
             .to_string(),
     );
 
-    if let Some((stored_user_id, stored_password_hash)) = get_stored_credentials(&email, pool)
+    if let Some((stored_user_id, stored_password_hash)) = get_stored_credentials(email, pool)
         .await
         .map_err(AuthError::UnexpectedError)?
     {
@@ -85,8 +85,8 @@ fn verify_password_hash(
     password_candidate: Secret<String>,
 ) -> Result<(), AuthError> {
     let expected_password_hash = PasswordHash::new(expected_password_hash.expose_secret())
-    .map_err(|e| anyhow::anyhow!("Failed to parse hash in PHC string format: {e}"))
-    .map_err(AuthError::UnexpectedError)?;
+        .map_err(|e| anyhow::anyhow!("Failed to parse hash in PHC string format: {e}"))
+        .map_err(AuthError::UnexpectedError)?;
 
     Argon2::default()
         .verify_password(

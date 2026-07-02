@@ -1,7 +1,7 @@
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
+use pavex::Response;
 use pavex::http::HeaderMap;
 use pavex::request::RequestHead;
-use pavex::Response;
 use secrecy::Secret;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -37,8 +37,7 @@ impl Claims {
     /// Returns 401 if missing or invalid.
     #[request_scoped]
     pub fn extract(head: &RequestHead, jwt_key: &DecodingKey) -> Result<Self, Unauthorized> {
-        extract_claims(&head.headers, jwt_key)
-            .ok_or(Unauthorized)
+        extract_claims(&head.headers, jwt_key).ok_or(Unauthorized)
     }
 
     #[error_handler]

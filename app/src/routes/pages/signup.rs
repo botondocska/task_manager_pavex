@@ -1,10 +1,10 @@
-use askama::Template;
-use pavex::{Response, request::body::UrlEncodedBody, http::HeaderValue};
-use pavex_session::Session;
-use sqlx::SqlitePool;
 use crate::routes::users::password::compute_password_hash;
-use secrecy::Secret;
+use askama::Template;
 use htmx_macro::{hx_get, hx_post};
+use pavex::{Response, http::HeaderValue, request::body::UrlEncodedBody};
+use pavex_session::Session;
+use secrecy::Secret;
+use sqlx::SqlitePool;
 
 #[derive(Template)]
 #[template(path = "signup.html")]
@@ -13,9 +13,10 @@ struct SignupPage;
 #[hx_get(path = "/signup", template = "signup.html")]
 pub fn signup_page() -> Response {
     let html = SignupPage.render().expect("template render failed");
-    Response::ok()
-        .set_typed_body(html)
-        .append_header(pavex::http::header::CONTENT_TYPE, HeaderValue::from_static("text/html; charset=utf-8"))
+    Response::ok().set_typed_body(html).append_header(
+        pavex::http::header::CONTENT_TYPE,
+        HeaderValue::from_static("text/html; charset=utf-8"),
+    )
 }
 
 #[derive(Template)]
@@ -39,7 +40,11 @@ pub async fn signup_submit(
     db_pool: &SqlitePool,
     session: &mut Session<'_>,
 ) -> Response {
-    let SignupForm { username, email, password } = body.0;
+    let SignupForm {
+        username,
+        email,
+        password,
+    } = body.0;
 
     let hash = match compute_password_hash(password) {
         Ok(h) => h,
@@ -48,7 +53,9 @@ pub async fn signup_submit(
 
     match insert_user_record(&username, &email, &hash, db_pool).await {
         Ok(user_id) => {
-            session.insert("user_id", user_id.to_string()).await
+            session
+                .insert("user_id", user_id.to_string())
+                .await
                 .expect("Failed to insert session");
             session.cycle_id();
             render_success(username)
@@ -61,17 +68,31 @@ pub async fn signup_submit(
 }
 
 fn render_success(username: String) -> Response {
-    let html = SignupResult { success: true, username, error_message: String::new() }
-        .render().expect("render failed");
-    Response::ok().set_typed_body(html)
-        .append_header(pavex::http::header::CONTENT_TYPE, HeaderValue::from_static("text/html; charset=utf-8"))
+    let html = SignupResult {
+        success: true,
+        username,
+        error_message: String::new(),
+    }
+    .render()
+    .expect("render failed");
+    Response::ok().set_typed_body(html).append_header(
+        pavex::http::header::CONTENT_TYPE,
+        HeaderValue::from_static("text/html; charset=utf-8"),
+    )
 }
 
 fn render_error(msg: String) -> Response {
-    let html = SignupResult { success: false, username: String::new(), error_message: msg }
-        .render().expect("render failed");
-    Response::ok().set_typed_body(html)
-        .append_header(pavex::http::header::CONTENT_TYPE, HeaderValue::from_static("text/html; charset=utf-8"))
+    let html = SignupResult {
+        success: false,
+        username: String::new(),
+        error_message: msg,
+    }
+    .render()
+    .expect("render failed");
+    Response::ok().set_typed_body(html).append_header(
+        pavex::http::header::CONTENT_TYPE,
+        HeaderValue::from_static("text/html; charset=utf-8"),
+    )
 }
 
 async fn insert_user_record(
@@ -85,7 +106,10 @@ async fn insert_user_record(
     let hash = secrecy::ExposeSecret::expose_secret(password_hash);
     sqlx::query!(
         r#"INSERT INTO users (id, username, email, password_hash) VALUES (?, ?, ?, ?)"#,
-        user_id_str, username, email, hash,
+        user_id_str,
+        username,
+        email,
+        hash,
     )
     .execute(pool)
     .await?;
