@@ -14,3 +14,7 @@ session:
     same_site: "Lax"
   state:
     ttl: "168h"
+
+auth:
+  eddsa_private_key_pem: "placeholder"
+  eddsa_public_key_pem: "placeholder"

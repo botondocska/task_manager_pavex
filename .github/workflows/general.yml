@@ -11,6 +11,9 @@ on:
 env:
   CARGO_TERM_COLOR: always
   SQLX_OFFLINE: true
+  PX_AUTH__EDDSA_PRIVATE_KEY_PEM: ${{ secrets.EDDSA_PRIVATE_KEY_PEM }}
+  PX_AUTH__EDDSA_PUBLIC_KEY_PEM: ${{ secrets.EDDSA_PUBLIC_KEY_PEM }}
+  PX_COOKIE_KEY__KEY: ${{ secrets.COOKIE_KEY }}
 
 jobs:
   test:

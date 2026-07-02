@@ -5,3 +5,14 @@ server:
   ip: "0.0.0.0"
   port: 8000
   graceful_shutdown_timeout: "1 minute"
+
+auth:
+  eddsa_private_key_pem: "placeholder"
+  eddsa_public_key_pem: "placeholder"
+
+cookies:
+  crypto_rules:
+    - cookie_names: ["session"]
+      algorithm: "encryption"
+      key: "d+RgVbC9cKJzPJgsXGv2Hht+ooJsCOEFoXTc8zbjA+TSDlhjtA/RtpAzNbY1VYz5XwR7Rap3pVE1ugVlKAJ0yA=="
+      fallbacks: []

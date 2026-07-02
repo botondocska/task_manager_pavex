@@ -4,3 +4,5 @@ data/app.db
 /coverage
 lcov.info
 recipe.json
+priv.pem
+pub.pem

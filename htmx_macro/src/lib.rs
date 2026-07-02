@@ -123,15 +123,16 @@ fn parse_routes_from_sdk(source: &str) -> Vec<Route> {
             "let matched_route_template = pavex::request::path::MatchedPathPattern::new(",
         ) {
             if let Some(ref method) = current_method
-                && let Some(next) = lines.get(i + 1) {
-                    let path = next.trim().trim_end_matches(',').trim_matches('"');
-                    if path != "*" {
-                        routes.push(Route {
-                            method: method.clone(),
-                            path: path.to_string(),
-                        });
-                    }
+                && let Some(next) = lines.get(i + 1)
+            {
+                let path = next.trim().trim_end_matches(',').trim_matches('"');
+                if path != "*" {
+                    routes.push(Route {
+                        method: method.clone(),
+                        path: path.to_string(),
+                    });
                 }
+            }
             current_method = None;
             continue;
         }
@@ -376,9 +377,10 @@ fn collect_ids_recursive(
     if node.kind() == "start_tag" {
         for (name, val, _) in extract_attrs(node, source) {
             if name == "id"
-                && let Some(v) = val {
-                    ids.insert(v);
-                }
+                && let Some(v) = val
+            {
+                ids.insert(v);
+            }
         }
     }
     for child in node.children(&mut node.walk()) {
@@ -540,16 +542,14 @@ fn validate_start_tag(
                 validate_route(value, &method, routes, errors, &ctx);
             }
 
-            "hx-push-url" | "hx-replace-url"
-                if value != "true" && value != "false" => {
-                    validate_route_path_exists(value, routes, errors, name, &ctx);
-                }
+            "hx-push-url" | "hx-replace-url" if value != "true" && value != "false" => {
+                validate_route_path_exists(value, routes, errors, name, &ctx);
+            }
 
             // --- json checks ---
-            "hx-vals" | "hx-headers"
-                if !value.starts_with("js:") => {
-                    validate_json(value, name, errors, &ctx);
-                }
+            "hx-vals" | "hx-headers" if !value.starts_with("js:") => {
+                validate_json(value, name, errors, &ctx);
+            }
 
             "hx-request" => {
                 validate_hx_request(value, errors, &ctx);
@@ -573,13 +573,12 @@ fn validate_start_tag(
                 }
             }
 
-            "hx-history"
-                if value != "false" => {
-                    errors.push(format!(
-                        "hx-history: invalid value `{}` — only `false` is valid\n  --> {}",
-                        value, ctx
-                    ));
-                }
+            "hx-history" if value != "false" => {
+                errors.push(format!(
+                    "hx-history: invalid value `{}` — only `false` is valid\n  --> {}",
+                    value, ctx
+                ));
+            }
 
             "hx-params" => {
                 if tag_name != "form"
@@ -622,15 +621,17 @@ fn validate_start_tag(
             "hx-target" | "hx-indicator" => {
                 validate_id_ref(name, value, ids, template_file, &ctx);
             }
-
-            "hx-select"
-                if let Some(id) = value.strip_prefix('#')
-                    && !ids.contains(id) => {
+            #[allow(clippy::collapsible_if)]
+            "hx-select" => {
+                if let Some(id) = value.strip_prefix('#') {
+                    if !ids.contains(id) {
                         errors.push(format!(
                             "{}: id `#{}` not found in template `{}`\n  --> {}",
                             name, id, template_file, ctx
                         ));
                     }
+                }
+            }
 
             "hx-select-oob" => {
                 // Comma-separated list of "#id", "#id:strategy", or "strategy:#id".
@@ -651,21 +652,23 @@ fn validate_start_tag(
                         }
                     };
                     if let Some(strategy) = strategy_opt
-                        && !VALID_SWAP_STRATEGIES.contains(&strategy) {
-                            errors.push(format!(
+                        && !VALID_SWAP_STRATEGIES.contains(&strategy)
+                    {
+                        errors.push(format!(
                                 "hx-select-oob: invalid swap strategy `{}` — must be one of: {}\n  --> {}",
                                 strategy,
                                 VALID_SWAP_STRATEGIES.join(", "),
                                 ctx
                             ));
-                        }
+                    }
                     if let Some(id) = selector.strip_prefix('#')
-                        && !ids.contains(id) {
-                            errors.push(format!(
-                                "hx-select-oob: id `#{}` not found in template `{}`\n  --> {}",
-                                id, template_file, ctx
-                            ));
-                        }
+                        && !ids.contains(id)
+                    {
+                        errors.push(format!(
+                            "hx-select-oob: id `#{}` not found in template `{}`\n  --> {}",
+                            id, template_file, ctx
+                        ));
+                    }
                 }
             }
 
@@ -713,13 +716,13 @@ fn validate_start_tag(
                     && tag_name != "section"
                     && tag_name != "nav"
                     && tag_name != "main"
-                    && tag_name != "body"
-                => {
-                    errors.push(format!(
+                    && tag_name != "body" =>
+            {
+                errors.push(format!(
                         "hx-boost: used on `<{}>` — only meaningful on containers or `<a>`/`<form>`\n  --> {}",
                         tag_name, ctx
                     ));
-                }
+            }
 
             _ => {}
         }
@@ -982,13 +985,14 @@ fn validate_id_ref(
         return;
     }
     if let Some(id) = value.strip_prefix('#')
-        && !ids.contains(id) {
-            // Warn, not error: id may live in a base/parent template.
-            eprintln!(
-                "cargo:warning={}: id `#{}` not found in template `{}` (may be in base template)\n  --> {}",
-                attr, id, template_file, ctx
-            );
-        }
+        && !ids.contains(id)
+    {
+        // Warn, not error: id may live in a base/parent template.
+        eprintln!(
+            "cargo:warning={}: id `#{}` not found in template `{}` (may be in base template)\n  --> {}",
+            attr, id, template_file, ctx
+        );
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1039,28 +1043,30 @@ fn check_boosted_children(
 
                     if tag_name == "a" {
                         if let Some(href) = href
-                            && !is_dynamic(&href) {
-                                let ctx = format!(
-                                    "{}:{} <a href=\"{}\"> inside hx-boost",
-                                    template_file, line, href
-                                );
-                                validate_route_path_exists(
-                                    &href,
-                                    routes,
-                                    errors,
-                                    "hx-boost href",
-                                    &ctx,
-                                );
-                            }
+                            && !is_dynamic(&href)
+                        {
+                            let ctx = format!(
+                                "{}:{} <a href=\"{}\"> inside hx-boost",
+                                template_file, line, href
+                            );
+                            validate_route_path_exists(
+                                &href,
+                                routes,
+                                errors,
+                                "hx-boost href",
+                                &ctx,
+                            );
+                        }
                     } else if tag_name == "form"
                         && let Some(action) = action
-                            && !is_dynamic(&action) {
-                                let ctx = format!(
-                                    "{}:{} <form action=\"{}\" method=\"{}\"> inside hx-boost",
-                                    template_file, line, action, method
-                                );
-                                validate_route(&action, &method, routes, errors, &ctx);
-                            }
+                        && !is_dynamic(&action)
+                    {
+                        let ctx = format!(
+                            "{}:{} <form action=\"{}\" method=\"{}\"> inside hx-boost",
+                            template_file, line, action, method
+                        );
+                        validate_route(&action, &method, routes, errors, &ctx);
+                    }
                 }
             }
             check_boosted_children(child, source, routes, errors, template_file);
