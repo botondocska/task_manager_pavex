@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+  <form hx-post="/login" hx-target="#form-result" hx-swap="innerHTML"
+        class="bg-white p-8 rounded-lg shadow-md w-96 space-y-4">
+    <h1 class="text-2xl font-bold text-gray-800">Login</h1>
+    <div id="form-result" class="text-sm"></div>
+    <input name="email" type="email" placeholder="Email"
+           class="w-full border border-gray-300 rounded px-3 py-2">
+    <input name="password" type="password" placeholder="Password"
+           class="w-full border border-gray-300 rounded px-3 py-2">
+    <button type="submit"
+            class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+      Login
+    </button>
+    <p class="text-center text-sm text-gray-600">
+      No account? <a href="/signup" class="text-blue-600 hover:underline">Sign up</a>
+    </p>
+  </form>
+</div>
+{% endblock %}

@@ -1,5 +1,7 @@
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use pavex::http::HeaderMap;
+use pavex::request::RequestHead;
+use pavex::Response;
 use secrecy::Secret;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -22,6 +24,26 @@ impl Claims {
     /// Return the user id encoded in the token.
     pub fn user_id(&self) -> Uuid {
         self.sub
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error("Missing or invalid token")]
+pub struct Unauthorized;
+
+#[pavex::methods]
+impl Claims {
+    /// Pavex constructor — extracts and validates JWT from the request.
+    /// Returns 401 if missing or invalid.
+    #[request_scoped]
+    pub fn extract(head: &RequestHead, jwt_key: &DecodingKey) -> Result<Self, Unauthorized> {
+        extract_claims(&head.headers, jwt_key)
+            .ok_or(Unauthorized)
+    }
+
+    #[error_handler]
+    pub fn unauthorized(_e: &Unauthorized) -> Response {
+        Response::unauthorized().set_typed_body("Missing or invalid token")
     }
 }
 
@@ -72,4 +94,34 @@ fn decode_token(token: &str, jwt_key: &DecodingKey) -> Result<Claims, anyhow::Er
     let validation = Validation::new(ALGORITHM);
     let decoded = decode::<Claims>(token, jwt_key, &validation)?;
     Ok(decoded.claims)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use secrecy::ExposeSecret;
+    use uuid::Uuid;
+
+    #[test]
+    fn encode_decode_token() {
+        // Arrange
+        let sub = Uuid::new_v4();
+        let (encoding_key, decoding_key) = generate_keys();
+
+        // Act
+        let token = encode_token(sub, &encoding_key).unwrap();
+        let decoded = decode_token(&token.expose_secret(), &decoding_key);
+
+        // Assert
+        let decoded = decoded.expect("Failed to decode token");
+        assert_eq!(decoded.sub, sub);
+    }
+
+    fn generate_keys() -> (EncodingKey, DecodingKey) {
+        let key_pair = jwt_simple::algorithms::Ed25519KeyPair::generate();
+        let encoding_key = EncodingKey::from_ed_pem(key_pair.to_pem().as_bytes()).unwrap();
+        let decoding_key =
+            DecodingKey::from_ed_pem(key_pair.public_key().to_pem().as_bytes()).unwrap();
+        (encoding_key, decoding_key)
+    }
 }

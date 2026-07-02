@@ -1,4 +1,4 @@
 mod endpoints;
-mod password;
+pub mod password;
 
 pub use endpoints::*;

@@ -25,7 +25,7 @@ pub async fn signup(
     let body = SignupResponse {
         user: User {
             email,
-            token,
+            token: Some(token),
             username,
             bio: "".into(),
             image: "".into(),

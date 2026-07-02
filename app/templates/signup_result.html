@@ -1,0 +1,5 @@
+{% if success %}
+<p class="text-green-600">Account created — welcome, {{ username }}!</p>
+{% else %}
+<p class="text-red-600">{{ error_message }}</p>
+{% endif %}

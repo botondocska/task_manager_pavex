@@ -1,0 +1,5 @@
+{% if success %}
+<p class="text-green-600">Logged in successfully! <a href="/todos" class="underline">Go to your tasks</a></p>
+{% else %}
+<p class="text-red-600">{{ error_message }}</p>
+{% endif %}

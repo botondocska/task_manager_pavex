@@ -2,6 +2,8 @@
 //! on how to manage configuration values.
 use pavex::config;
 use pavex::server::IncomingStream;
+use pavex_session::SessionStore;
+use pavex_session_sqlx::SqliteSessionStore;
 use jsonwebtoken::{DecodingKey, EncodingKey};
 use secrecy::{ExposeSecret, Secret};
 use sqlx::sqlite::SqliteConnectOptions;
@@ -85,6 +87,13 @@ impl DatabaseConfig {
             .map_err(|e| sqlx::Error::Migrate(Box::new(e)))?;
         Ok(pool)
     }
+
+    #[pavex::singleton]
+    pub async fn session_store(pool: &sqlx::SqlitePool) -> Result<SessionStore, sqlx::Error> {
+        let backend = SqliteSessionStore::new(pool.clone());
+        backend.migrate().await?;
+        Ok(SessionStore::new(backend))
+    }
 }
 
 #[derive(serde::Deserialize, Clone, Debug)]
@@ -104,8 +113,9 @@ impl AuthConfig {
     pub fn encoding_key(&self) -> Result<EncodingKey, jsonwebtoken::errors::Error> {
         EncodingKey::from_ed_pem(self.eddsa_private_key_pem.expose_secret().as_bytes())
     }
- 
+    
     /// Return the public key to be used for verifying the signature of JWTs.
+    #[pavex::singleton]
     pub fn decoding_key(&self) -> Result<DecodingKey, jsonwebtoken::errors::Error> {
         DecodingKey::from_ed_pem(self.eddsa_public_key_pem.as_bytes())
     }

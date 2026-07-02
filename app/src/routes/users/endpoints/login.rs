@@ -32,7 +32,7 @@ pub async fn login(
     let body = LoginResponse {
         user: User {
             email: user_record.email,
-            token: jwt_token,
+            token: Some(jwt_token),
             username: user_record.username,
             bio: user_record.bio.unwrap_or_default(),
             image: user_record.image.unwrap_or_default(),

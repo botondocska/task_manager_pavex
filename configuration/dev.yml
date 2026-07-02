@@ -9,6 +9,15 @@ database:
   database_url: "sqlite:./data/app.db"
   create_if_missing: true
 
+session:
+  cookie:
+    name: "session"
+    secure: false
+    http_only: true
+    same_site: "Lax"
+  state:
+    ttl: "168h"
+
 auth:
   eddsa_private_key_pem: |
     -----BEGIN PRIVATE KEY-----

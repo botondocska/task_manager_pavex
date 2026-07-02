@@ -1,6 +1,8 @@
-use crate::routes::router;
+use crate::routes::{router, api_router};
 use crate::telemetry;
 use pavex::{Blueprint, blueprint::from};
+
+
 
 /// The main blueprint, defining all the components used in this API.
 pub fn blueprint() -> Blueprint {
@@ -13,11 +15,12 @@ pub fn blueprint() -> Blueprint {
         // Components defined in the `pavex` crate,
         // by the framework itself.
         pavex,
+        pavex_session,
     ]);
 
     telemetry::instrument(&mut bp);
-
-    bp.prefix("/api").routes(from![crate]);
     router(&mut bp);
+    bp.prefix("/api").routes(from![crate]);
+    api_router(&mut bp);
     bp
 }

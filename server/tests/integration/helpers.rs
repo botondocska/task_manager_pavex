@@ -34,7 +34,10 @@ impl TestApi {
 
         TestApi {
             api_address,
-            api_client: reqwest::Client::new(),
+            api_client: reqwest::Client::builder()
+                .redirect(reqwest::redirect::Policy::none())
+                .build()
+                .unwrap(),
         }
     }
 
@@ -104,5 +107,46 @@ impl TestApi {
             .send()
             .await
             .expect("Failed to execute request.")
+    }
+    
+    pub async fn get_user(&self, token: &str) -> reqwest::Response {
+        self.api_client
+            .get(&format!("{}/api/user", &self.api_address))
+            .header("Authorization", format!("Bearer {token}"))
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn put_user<Body>(&self, token: &str, body: &Body) -> reqwest::Response
+    where
+        Body: serde::Serialize,
+    {
+        self.api_client
+            .put(&format!("{}/api/user", &self.api_address))
+            .header("Authorization", format!("Bearer {token}"))
+            .json(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn signup_and_get_token(&self, username: &str, email: &str, password: &str) -> String {
+        let body = self.post_signup(&serde_json::json!({
+            "user": {
+                "username": username,
+                "email": email,
+                "password": password,
+            }
+        }))
+        .await
+        .json::<serde_json::Value>()
+        .await
+        .expect("Failed to parse signup response");
+
+        body["user"]["token"]
+            .as_str()
+            .expect("Token missing from signup response")
+            .to_owned()
     }
 }

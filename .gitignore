@@ -1,2 +1,6 @@
 /target
 .env
+data/app.db
+/coverage
+lcov.info
+recipe.json

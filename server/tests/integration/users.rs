@@ -198,3 +198,91 @@ async fn login_unknown_email_returns_401() {
 
     assert_eq!(response.status().as_u16(), StatusCode::UNAUTHORIZED.as_u16());
 }
+
+#[tokio::test]
+async fn get_user_without_token_returns_401() {
+    let api = TestApi::spawn().await;
+
+    let response = api.api_client
+        .get(&format!("{}/api/user", &api.api_address))
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    assert_eq!(response.status().as_u16(), StatusCode::UNAUTHORIZED.as_u16());
+}
+
+#[tokio::test]
+async fn get_user_with_token_returns_200() {
+    let api = TestApi::spawn().await;
+    let token = api.signup_and_get_token("alice", "alice@example.com", "hunter22").await;
+    let response = api.get_user(&token).await;
+    assert_eq!(response.status().as_u16(), StatusCode::OK.as_u16());
+}
+
+#[tokio::test]
+async fn update_user_without_token_returns_401() {
+    let api = TestApi::spawn().await;
+
+    let response = api.put_user("invalid_token", &json!({
+        "user": { "bio": "hello" }
+    })).await;
+
+    assert_eq!(response.status().as_u16(), StatusCode::UNAUTHORIZED.as_u16());
+}
+
+#[tokio::test]
+async fn update_user_bio() {
+    let api = TestApi::spawn().await;
+    let token = api.signup_and_get_token("alice", "alice@example.com", "hunter22").await;
+
+    let response = api.put_user(&token, &json!({
+        "user": { "bio": "I love Rust" }
+    })).await;
+
+    assert_eq!(response.status().as_u16(), StatusCode::OK.as_u16());
+
+    let body: serde_json::Value = response.json().await.unwrap();
+    assert_eq!(body["user"]["bio"], "I love Rust");
+}
+
+#[tokio::test]
+async fn update_user_partial_fields_only_changes_provided() {
+    let api = TestApi::spawn().await;
+    let token = api.signup_and_get_token("alice", "alice@example.com", "hunter22").await;
+
+    api.put_user(&token, &json!({
+        "user": { "bio": "I love Rust" }
+    })).await;
+
+    // update only image, bio should stay
+    let response = api.put_user(&token, &json!({
+        "user": { "image": "https://example.com/avatar.png" }
+    })).await;
+
+    let body: serde_json::Value = response.json().await.unwrap();
+    assert_eq!(body["user"]["bio"], "I love Rust");
+    assert_eq!(body["user"]["image"], "https://example.com/avatar.png");
+}
+
+#[tokio::test]
+async fn update_user_password_allows_login_with_new_password() {
+    let api = TestApi::spawn().await;
+    let token = api.signup_and_get_token("alice", "alice@example.com", "hunter22").await;
+
+    api.put_user(&token, &json!({
+        "user": { "password": "newpassword99" }
+    })).await;
+
+    // old password should fail
+    let old_login = api.post_login(&json!({
+        "user": { "email": "alice@example.com", "password": "hunter22" }
+    })).await;
+    assert_eq!(old_login.status().as_u16(), StatusCode::UNAUTHORIZED.as_u16());
+
+    // new password should work
+    let new_login = api.post_login(&json!({
+        "user": { "email": "alice@example.com", "password": "newpassword99" }
+    })).await;
+    assert_eq!(new_login.status().as_u16(), StatusCode::OK.as_u16());
+}
