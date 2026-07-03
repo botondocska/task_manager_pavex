@@ -157,7 +157,6 @@ impl TestApi {
     }
 }
 
-
 impl TestApi {
     pub async fn post_label<Body>(&self, token: &str, body: &Body) -> reqwest::Response
     where

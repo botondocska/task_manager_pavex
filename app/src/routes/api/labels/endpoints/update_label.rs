@@ -1,5 +1,4 @@
-use crate::{jwt_auth::Claims, schemas::Label};
-use anyhow::Context;
+use crate::{jwt_auth::Claims, routes::api::labels::repo, schemas::Label};
 use pavex::{
     Response, put,
     request::{body::JsonBody, path::PathParams},
@@ -37,46 +36,14 @@ pub async fn update_label(
     let UpdateLabel { name, color } = body.0;
     let user_id = claims.user_id().to_string();
 
-    let result = sqlx::query!(
-        r#"
-        UPDATE labels SET
-            name  = COALESCE(?, name),
-            color = COALESCE(?, color)
-        WHERE id = ? AND user_id = ?
-        "#,
-        name,
-        color,
-        id,
-        user_id,
-    )
-    .execute(pool)
-    .await
-    .context("Failed to update label")
-    .map_err(LabelError::UnexpectedError)?;
+    let label = repo::update(&user_id, id, name.as_deref(), color.as_deref(), pool)
+        .await
+        .map_err(|e| LabelError::UnexpectedError(e.into()))? //.map_err(|e| LabelError::UnexpectedError(anyhow::Error::new(e).context("Failed to create label")))?
+        .ok_or(LabelError::NotFound)?;
 
-    if result.rows_affected() == 0 {
-        return Err(LabelError::NotFound);
-    }
-
-    let row = sqlx::query!(
-        r#"SELECT id, name, color FROM labels WHERE id = ? AND user_id = ?"#,
-        id,
-        user_id,
-    )
-    .fetch_one(pool)
-    .await
-    .context("Failed to fetch updated label")
-    .map_err(LabelError::UnexpectedError)?;
-
-    let body = Json::new(UpdateLabelResponse {
-        label: Label {
-            id: row.id,
-            name: row.name,
-            color: row.color,
-        },
-    })
-    .map_err(Into::into)
-    .map_err(LabelError::UnexpectedError)?;
+    let body = Json::new(UpdateLabelResponse { label })
+        .map_err(Into::into)
+        .map_err(LabelError::UnexpectedError)?;
 
     Ok(Response::ok().set_typed_body(body))
 }

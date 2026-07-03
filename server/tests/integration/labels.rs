@@ -48,8 +48,11 @@ async fn list_labels_returns_only_own_labels() {
         .signup_and_get_token("bob", "bob@example.com", "hunter22")
         .await;
 
-    api.post_label(&alice_token, &json!({ "name": "Alice's", "color": "#ff0000" }))
-        .await;
+    api.post_label(
+        &alice_token,
+        &json!({ "name": "Alice's", "color": "#ff0000" }),
+    )
+    .await;
     api.post_label(&bob_token, &json!({ "name": "Bob's", "color": "#00ff00" }))
         .await;
 
@@ -94,7 +97,10 @@ async fn update_other_users_label_returns_404() {
         .await;
 
     let created = api
-        .post_label(&alice_token, &json!({ "name": "Alice's", "color": "#ff0000" }))
+        .post_label(
+            &alice_token,
+            &json!({ "name": "Alice's", "color": "#ff0000" }),
+        )
         .await
         .json::<serde_json::Value>()
         .await
@@ -138,7 +144,10 @@ async fn delete_other_users_label_returns_404() {
         .await;
 
     let created = api
-        .post_label(&alice_token, &json!({ "name": "Alice's", "color": "#ff0000" }))
+        .post_label(
+            &alice_token,
+            &json!({ "name": "Alice's", "color": "#ff0000" }),
+        )
         .await
         .json::<serde_json::Value>()
         .await

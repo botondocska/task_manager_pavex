@@ -17,6 +17,7 @@ publish = false
 [dependencies]
 base64 = { version = "0.22" }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
+deranged = { version = "0.5", features = ["serde"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 either = { version = "1", features = ["serde", "use_std"] }
 futures-channel = { version = "0.3", features = ["sink"] }
@@ -43,6 +44,7 @@ smallvec = { version = "1", default-features = false, features = ["const_new"] }
 sqlx-core = { version = "0.8", features = ["_rt-tokio", "_tls-rustls-ring-webpki", "any", "json", "migrate", "offline", "time", "uuid"] }
 sqlx-sqlite = { version = "0.8", default-features = false, features = ["any", "bundled", "json", "migrate", "offline", "time", "uuid"] }
 subtle = { version = "2" }
+time = { version = "0.3", features = ["macros", "serde-well-known"] }
 tokio = { version = "1", features = ["full"] }
 tracing-core = { version = "0.1" }
 uuid = { version = "1", features = ["serde", "v4", "v7"] }
@@ -50,6 +52,7 @@ uuid = { version = "1", features = ["serde", "v4", "v7"] }
 [build-dependencies]
 base64 = { version = "0.22" }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
+deranged = { version = "0.5", features = ["serde"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 either = { version = "1", features = ["serde", "use_std"] }
 futures-channel = { version = "0.3", features = ["sink"] }
@@ -77,6 +80,7 @@ sqlx-core = { version = "0.8", features = ["_rt-tokio", "_tls-rustls-ring-webpki
 sqlx-sqlite = { version = "0.8", default-features = false, features = ["any", "bundled", "json", "migrate", "offline", "time", "uuid"] }
 subtle = { version = "2" }
 syn = { version = "2", features = ["extra-traits", "fold", "full", "visit", "visit-mut"] }
+time = { version = "0.3", features = ["macros", "serde-well-known"] }
 tokio = { version = "1", features = ["full"] }
 tracing-core = { version = "0.1" }
 uuid = { version = "1", features = ["serde", "v4", "v7"] }

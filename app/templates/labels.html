@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Labels{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto py-10 px-4">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">Labels</h1>
+
+  <form hx-post="/labels" hx-target="#label-list" hx-swap="beforeend"
+        class="flex gap-2 mb-6">
+    <input name="name" type="text" placeholder="Name" required
+           class="flex-1 border border-gray-300 rounded px-3 py-2">
+    <input name="color" type="color" value="#3b82f6"
+           class="w-14 h-10 border border-gray-300 rounded">
+    <button type="submit"
+            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+      Add
+    </button>
+  </form>
+
+  <ul id="label-list" class="space-y-2">
+    {% for label in labels %}
+      {% include "label_row.html" %}
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

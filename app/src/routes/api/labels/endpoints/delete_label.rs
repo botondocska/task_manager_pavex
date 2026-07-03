@@ -1,5 +1,4 @@
-use crate::jwt_auth::Claims;
-use anyhow::Context;
+use crate::{jwt_auth::Claims, routes::api::labels::repo};
 use pavex::{Response, delete, request::path::PathParams};
 use sqlx::SqlitePool;
 
@@ -15,17 +14,11 @@ pub async fn delete_label(
     let LabelId { id } = params.0;
     let user_id = claims.user_id().to_string();
 
-    let result = sqlx::query!(
-        r#"DELETE FROM labels WHERE id = ? AND user_id = ?"#,
-        id,
-        user_id,
-    )
-    .execute(pool)
-    .await
-    .context("Failed to delete label")
-    .map_err(LabelError::UnexpectedError)?;
+    let deleted = repo::delete(&user_id, id, pool)
+        .await
+        .map_err(|e| LabelError::UnexpectedError(e.into()))?; //.map_err(|e| LabelError::UnexpectedError(anyhow::Error::new(e).context("Failed to create label")))?
 
-    if result.rows_affected() == 0 {
+    if !deleted {
         return Err(LabelError::NotFound);
     }
 

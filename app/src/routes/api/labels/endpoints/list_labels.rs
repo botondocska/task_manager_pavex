@@ -1,5 +1,4 @@
-use crate::{jwt_auth::Claims, schemas::Label};
-use anyhow::Context;
+use crate::{jwt_auth::Claims, routes::api::labels::repo, schemas::Label};
 use pavex::{Response, get, response::body::Json};
 use sqlx::SqlitePool;
 
@@ -15,23 +14,9 @@ pub struct ListLabelsResponse {
 pub async fn list_labels(claims: &Claims, pool: &SqlitePool) -> Result<Response, LabelError> {
     let user_id = claims.user_id().to_string();
 
-    let rows = sqlx::query!(
-        r#"SELECT id, name, color FROM labels WHERE user_id = ?"#,
-        user_id,
-    )
-    .fetch_all(pool)
-    .await
-    .context("Failed to list labels")
-    .map_err(LabelError::UnexpectedError)?;
-
-    let labels = rows
-        .into_iter()
-        .map(|r| Label {
-            id: r.id,
-            name: r.name,
-            color: r.color,
-        })
-        .collect();
+    let labels = repo::list_for_user(&user_id, pool)
+        .await
+        .map_err(|e| LabelError::UnexpectedError(e.into()))?; //.map_err(|e| LabelError::UnexpectedError(anyhow::Error::new(e).context("Failed to create label")))?
 
     let body = Json::new(ListLabelsResponse { labels })
         .map_err(Into::into)

@@ -1,5 +1,4 @@
-use crate::{jwt_auth::Claims, schemas::Label};
-use anyhow::Context;
+use crate::{jwt_auth::Claims, routes::api::labels::repo, schemas::Label};
 use pavex::{Response, methods, post, request::body::JsonBody, response::body::Json};
 use sqlx::SqlitePool;
 
@@ -24,23 +23,13 @@ pub async fn create_label(
     let CreateLabel { name, color } = body.0;
     let user_id = claims.user_id().to_string();
 
-    let id = sqlx::query!(
-        r#"INSERT INTO labels (user_id, name, color) VALUES (?, ?, ?)"#,
-        user_id,
-        name,
-        color,
-    )
-    .execute(pool)
-    .await
-    .context("Failed to insert label")
-    .map_err(LabelError::UnexpectedError)?
-    .last_insert_rowid();
+    let label = repo::create(&user_id, &name, &color, pool)
+        .await
+        .map_err(|e| LabelError::UnexpectedError(e.into()))?; //.map_err(|e| LabelError::UnexpectedError(anyhow::Error::new(e).context("Failed to create label")))?
 
-    let body = Json::new(CreateLabelResponse {
-        label: Label { id, name, color },
-    })
-    .map_err(Into::into)
-    .map_err(LabelError::UnexpectedError)?;
+    let body = Json::new(CreateLabelResponse { label })
+        .map_err(Into::into)
+        .map_err(LabelError::UnexpectedError)?;
 
     Ok(Response::created().set_typed_body(body))
 }
