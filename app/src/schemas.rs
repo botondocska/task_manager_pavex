@@ -42,6 +42,18 @@ pub struct Label {
     pub color: String,
 }
 
+#[derive(serde::Deserialize)]
+pub struct CreateLabelBody {
+    pub name: String,
+    pub color: String,
+}
+
+#[derive(serde::Deserialize)]
+pub struct UpdateLabelBody {
+    pub name: Option<String>,
+    pub color: Option<String>,
+}
+
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Todo {
@@ -56,6 +68,25 @@ pub struct Todo {
     pub description: Option<String>,
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
+}
+
+#[derive(serde::Deserialize)]
+pub struct CreateTodoBody {
+    pub title: String,
+    pub description: Option<String>,
+    pub duration: Option<i64>,
+    pub rrule: Option<String>,
+    pub label_id: Option<i64>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateTodoBody {
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub duration: Option<i64>,
+    pub rrule: Option<String>,
+    pub label_id: Option<i64>,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]

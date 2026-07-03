@@ -1,4 +1,4 @@
-use crate::schemas::Label;
+use crate::schemas::{CreateLabelBody, Label, UpdateLabelBody};
 use sqlx::SqlitePool;
 
 pub async fn list_for_user(user_id: &str, pool: &SqlitePool) -> Result<Vec<Label>, sqlx::Error> {
@@ -21,15 +21,14 @@ pub async fn list_for_user(user_id: &str, pool: &SqlitePool) -> Result<Vec<Label
 
 pub async fn create(
     user_id: &str,
-    name: &str,
-    color: &str,
+    body: &CreateLabelBody,
     pool: &SqlitePool,
 ) -> Result<Label, sqlx::Error> {
     let id = sqlx::query!(
         r#"INSERT INTO labels (user_id, name, color) VALUES (?, ?, ?)"#,
         user_id,
-        name,
-        color,
+        body.name,
+        body.color,
     )
     .execute(pool)
     .await?
@@ -37,16 +36,15 @@ pub async fn create(
 
     Ok(Label {
         id,
-        name: name.to_string(),
-        color: color.to_string(),
+        name: body.name.clone(),
+        color: body.color.clone(),
     })
 }
 
 pub async fn update(
     user_id: &str,
     id: i64,
-    name: Option<&str>,
-    color: Option<&str>,
+    body: &UpdateLabelBody,
     pool: &SqlitePool,
 ) -> Result<Option<Label>, sqlx::Error> {
     let result = sqlx::query!(
@@ -56,8 +54,8 @@ pub async fn update(
             color = COALESCE(?, color)
         WHERE id = ? AND user_id = ?
         "#,
-        name,
-        color,
+        body.name,
+        body.color,
         id,
         user_id,
     )

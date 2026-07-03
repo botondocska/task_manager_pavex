@@ -190,7 +190,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/labels",
                         );
-                        route_9::entrypoint(
+                        route_10::entrypoint(
                                 matched_route_template,
                                 request_body,
                                 &state.processor,
@@ -206,7 +206,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/labels",
                         );
-                        route_11::entrypoint(
+                        route_12::entrypoint(
                                 matched_route_template,
                                 &state.processor,
                                 &request_head,
@@ -244,7 +244,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/labels/{id}",
                         );
-                        route_10::entrypoint(
+                        route_11::entrypoint(
                                 matched_route_template,
                                 url_params,
                                 &state.processor,
@@ -260,7 +260,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/labels/{id}",
                         );
-                        route_12::entrypoint(
+                        route_13::entrypoint(
                                 matched_route_template,
                                 request_body,
                                 url_params,
@@ -300,7 +300,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/todos",
                         );
-                        route_13::entrypoint(
+                        route_14::entrypoint(
                                 matched_route_template,
                                 request_body,
                                 &state.processor,
@@ -316,7 +316,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/todos",
                         );
-                        route_15::entrypoint(
+                        route_16::entrypoint(
                                 matched_route_template,
                                 &state.processor,
                                 &request_head,
@@ -354,7 +354,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/todos/{id}",
                         );
-                        route_14::entrypoint(
+                        route_15::entrypoint(
                                 matched_route_template,
                                 url_params,
                                 &state.processor,
@@ -370,7 +370,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/todos/{id}",
                         );
-                        route_16::entrypoint(
+                        route_17::entrypoint(
                                 matched_route_template,
                                 request_body,
                                 url_params,
@@ -410,7 +410,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/user",
                         );
-                        route_17::entrypoint(
+                        route_18::entrypoint(
                                 matched_route_template,
                                 &state.processor,
                                 &request_head,
@@ -425,7 +425,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/user",
                         );
-                        route_20::entrypoint(
+                        route_21::entrypoint(
                                 matched_route_template,
                                 request_body,
                                 &state.processor,
@@ -464,7 +464,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/users",
                         );
-                        route_19::entrypoint(
+                        route_20::entrypoint(
                                 matched_route_template,
                                 request_body,
                                 &state.processor,
@@ -502,7 +502,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/api/users/login",
                         );
-                        route_18::entrypoint(
+                        route_19::entrypoint(
                                 matched_route_template,
                                 request_body,
                                 &state.processor,
@@ -588,11 +588,27 @@ impl Router {
             }
             8u32 => {
                 match &request_head.method {
-                    &pavex::http::Method::DELETE => {
+                    &pavex::http::Method::PUT => {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/labels/{id}",
                         );
                         route_3::entrypoint(
+                                matched_route_template,
+                                request_body,
+                                url_params,
+                                &state.processor,
+                                &request_head,
+                                &state.pool,
+                                &state.session_config,
+                                &state.session_store,
+                            )
+                            .await
+                    }
+                    &pavex::http::Method::DELETE => {
+                        let matched_route_template = pavex::request::path::MatchedPathPattern::new(
+                            "/labels/{id}",
+                        );
+                        route_4::entrypoint(
                                 matched_route_template,
                                 url_params,
                                 &state.processor,
@@ -605,6 +621,7 @@ impl Router {
                     }
                     _ => {
                         let allowed_methods: pavex::router::AllowedMethods = pavex::router::MethodAllowList::from_iter([
+                                pavex::http::Method::PUT,
                                 pavex::http::Method::DELETE,
                             ])
                             .into();
@@ -629,7 +646,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/login",
                         );
-                        route_4::entrypoint(
+                        route_5::entrypoint(
                                 matched_route_template,
                                 &state.processor,
                                 &request_head,
@@ -642,7 +659,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/login",
                         );
-                        route_5::entrypoint(
+                        route_6::entrypoint(
                                 matched_route_template,
                                 request_body,
                                 &state.processor,
@@ -680,7 +697,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/logout",
                         );
-                        route_6::entrypoint(
+                        route_7::entrypoint(
                                 matched_route_template,
                                 &state.processor,
                                 &request_head,
@@ -715,7 +732,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/signup",
                         );
-                        route_7::entrypoint(
+                        route_8::entrypoint(
                                 matched_route_template,
                                 &state.processor,
                                 &request_head,
@@ -728,7 +745,7 @@ impl Router {
                         let matched_route_template = pavex::request::path::MatchedPathPattern::new(
                             "/signup",
                         );
-                        route_8::entrypoint(
+                        route_9::entrypoint(
                                 matched_route_template,
                                 request_body,
                                 &state.processor,
@@ -1537,6 +1554,338 @@ pub mod route_2 {
 pub mod route_3 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f, 'g>(
         s_0: pavex::request::path::MatchedPathPattern,
+        s_1: pavex::request::body::RawIncomingBody,
+        s_2: pavex::request::path::RawPathParams<'a, 'b>,
+        s_3: &'c biscotti::Processor,
+        s_4: &'d pavex::request::RequestHead,
+        s_5: &'e sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
+        s_6: &'f pavex_session::SessionConfig,
+        s_7: &'g pavex_session::SessionStore,
+    ) -> pavex::Response {
+        let response = wrapping_0(s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7).await;
+        response
+    }
+    async fn stage_1<'a, 'b, 'c, 'd, 'e, 'f, 'g>(
+        s_0: &'a biscotti::Processor,
+        s_1: pavex::request::path::RawPathParams<'b, 'c>,
+        s_2: pavex::request::body::RawIncomingBody,
+        s_3: &'d pavex::request::RequestHead,
+        s_4: &'e sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
+        s_5: pavex::request::path::MatchedPathPattern,
+        s_6: &'f pavex_session::SessionConfig,
+        s_7: &'g pavex_session::SessionStore,
+    ) -> pavex::Response {
+        let response = wrapping_1(s_0, s_3, s_5, s_2, s_1, s_6, s_7, s_4).await;
+        response
+    }
+    async fn stage_2<'a, 'b, 'c, 'd, 'e, 'f, 'g>(
+        mut s_0: pavex::cookie::ResponseCookies,
+        s_1: &'a biscotti::Processor,
+        s_2: &'b pavex_tracing::RootSpan,
+        s_3: pavex_session::Session<'c>,
+        s_4: pavex::request::path::RawPathParams<'d, 'e>,
+        s_5: pavex::request::body::RawIncomingBody,
+        s_6: &'f pavex::request::RequestHead,
+        s_7: &'g sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
+    ) -> pavex::Response {
+        let response = handler(s_4, s_2, s_5, s_6, &s_3, s_7).await;
+        let response = post_processing_0(response, s_2).await;
+        let response = post_processing_1(response, s_3, &mut s_0, s_1, s_2).await;
+        let response = post_processing_2(response, s_0, s_1, s_2).await;
+        response
+    }
+    async fn wrapping_0(
+        v0: pavex::request::path::MatchedPathPattern,
+        v1: pavex::request::body::RawIncomingBody,
+        v2: pavex::request::path::RawPathParams<'_, '_>,
+        v3: &biscotti::Processor,
+        v4: &pavex::request::RequestHead,
+        v5: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
+        v6: &pavex_session::SessionConfig,
+        v7: &pavex_session::SessionStore,
+    ) -> pavex::Response {
+        let v8 = crate::route_3::Next0 {
+            s_0: v3,
+            s_1: v2,
+            s_2: v1,
+            s_3: v4,
+            s_4: v5,
+            s_5: v0,
+            s_6: v6,
+            s_7: v7,
+            next: stage_1,
+        };
+        let v9 = pavex::middleware::Next::new(v8);
+        let v10 = pavex::middleware::wrap_noop(v9).await;
+        <pavex::Response as pavex::IntoResponse>::into_response(v10)
+    }
+    async fn wrapping_1(
+        v0: &biscotti::Processor,
+        v1: &pavex::request::RequestHead,
+        v2: pavex::request::path::MatchedPathPattern,
+        v3: pavex::request::body::RawIncomingBody,
+        v4: pavex::request::path::RawPathParams<'_, '_>,
+        v5: &pavex_session::SessionConfig,
+        v6: &pavex_session::SessionStore,
+        v7: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
+    ) -> pavex::Response {
+        let v8 = pavex::cookie::extract_request_cookies(v1, v0);
+        let v9 = match v8 {
+            Ok(ok) => ok,
+            Err(v9) => {
+                return {
+                    let v10 = pavex::cookie::errors::ExtractRequestCookiesError::into_response(
+                        &v9,
+                    );
+                    let v11 = pavex::Error::new(v9);
+                    let v12 = pavex::telemetry::ServerRequestId::generate();
+                    let v13 = app::telemetry::root_span(v1, v2, v12);
+                    app::telemetry::error_logger(&v11, &v13).await;
+                    <pavex::Response as pavex::IntoResponse>::into_response(v10)
+                };
+            }
+        };
+        let v10 = pavex::telemetry::ServerRequestId::generate();
+        let v11 = app::telemetry::root_span(v1, v2, v10);
+        let v12 = pavex_session::SessionConfig::cookie_config(v5);
+        let v13 = pavex_session::IncomingSession::extract(&v9, v12);
+        let v14 = pavex_session::Session::new(v6, v5, v13);
+        let v15 = pavex::cookie::ResponseCookies::new();
+        let v16 = crate::route_3::Next1 {
+            s_0: v15,
+            s_1: v0,
+            s_2: &v11,
+            s_3: v14,
+            s_4: v4,
+            s_5: v3,
+            s_6: v1,
+            s_7: v7,
+            next: stage_2,
+        };
+        let v17 = pavex::middleware::Next::new(v16);
+        let v18 = <pavex_tracing::RootSpan as core::clone::Clone>::clone(&v11);
+        let v19 = pavex_tracing::logger(v18, v17).await;
+        <pavex::Response as pavex::IntoResponse>::into_response(v19)
+    }
+    async fn handler(
+        v0: pavex::request::path::RawPathParams<'_, '_>,
+        v1: &pavex_tracing::RootSpan,
+        v2: pavex::request::body::RawIncomingBody,
+        v3: &pavex::request::RequestHead,
+        v4: &pavex_session::Session<'_>,
+        v5: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
+    ) -> pavex::Response {
+        let v6 = pavex::request::path::PathParams::extract(v0);
+        let v7 = match v6 {
+            Ok(ok) => ok,
+            Err(v7) => {
+                return {
+                    let v8 = pavex::request::path::errors::ExtractPathParamsError::into_response(
+                        &v7,
+                    );
+                    let v9 = pavex::Error::new(v7);
+                    app::telemetry::error_logger(&v9, v1).await;
+                    <pavex::Response as pavex::IntoResponse>::into_response(v8)
+                };
+            }
+        };
+        let v8 = pavex::request::body::BodySizeLimit::new();
+        let v9 = pavex::request::body::BufferedBody::extract(v3, v2, v8).await;
+        let v10 = match v9 {
+            Ok(ok) => ok,
+            Err(v10) => {
+                return {
+                    let v11 = pavex::request::body::errors::ExtractBufferedBodyError::into_response(
+                        &v10,
+                    );
+                    let v12 = pavex::Error::new(v10);
+                    app::telemetry::error_logger(&v12, v1).await;
+                    <pavex::Response as pavex::IntoResponse>::into_response(v11)
+                };
+            }
+        };
+        let v11 = pavex::request::body::UrlEncodedBody::extract(v3, &v10);
+        let v12 = match v11 {
+            Ok(ok) => ok,
+            Err(v12) => {
+                return {
+                    let v13 = pavex::request::body::errors::ExtractUrlEncodedBodyError::into_response(
+                        &v12,
+                    );
+                    let v14 = pavex::Error::new(v12);
+                    app::telemetry::error_logger(&v14, v1).await;
+                    <pavex::Response as pavex::IntoResponse>::into_response(v13)
+                };
+            }
+        };
+        let v13 = app::session_auth::SessionUserId::extract(v4).await;
+        let v14 = match v13 {
+            Ok(ok) => ok,
+            Err(v14) => {
+                return {
+                    let v15 = app::session_auth::SessionUserId::not_logged_in(&v14);
+                    let v16 = pavex::Error::new(v14);
+                    app::telemetry::error_logger(&v16, v1).await;
+                    <pavex::Response as pavex::IntoResponse>::into_response(v15)
+                };
+            }
+        };
+        let v15 = app::routes::pages::update_label_page(v7, v12, &v14, v5).await;
+        let v16 = match v15 {
+            Ok(ok) => ok,
+            Err(v16) => {
+                return {
+                    let v17 = app::routes::pages::LabelsPageError::into_response(&v16);
+                    let v18 = pavex::Error::new(v16);
+                    app::telemetry::error_logger(&v18, v1).await;
+                    <pavex::Response as pavex::IntoResponse>::into_response(v17)
+                };
+            }
+        };
+        <pavex::Response as pavex::IntoResponse>::into_response(v16)
+    }
+    async fn post_processing_0(
+        v0: pavex::Response,
+        v1: &pavex_tracing::RootSpan,
+    ) -> pavex::Response {
+        let v2 = app::telemetry::response_logger(v0, v1).await;
+        <pavex::Response as pavex::IntoResponse>::into_response(v2)
+    }
+    async fn post_processing_1(
+        v0: pavex::Response,
+        v1: pavex_session::Session<'_>,
+        v2: &mut pavex::cookie::ResponseCookies,
+        v3: &biscotti::Processor,
+        v4: &pavex_tracing::RootSpan,
+    ) -> pavex::Response {
+        let v5 = pavex_session::finalize_session(v0, v2, v3, v1).await;
+        let v6 = match v5 {
+            Ok(ok) => ok,
+            Err(v6) => {
+                return {
+                    let v7 = pavex_session::errors::FinalizeError::into_response(&v6);
+                    let v8 = pavex::Error::new(v6);
+                    app::telemetry::error_logger(&v8, v4).await;
+                    <pavex::Response as pavex::IntoResponse>::into_response(v7)
+                };
+            }
+        };
+        <pavex::Response as pavex::IntoResponse>::into_response(v6)
+    }
+    async fn post_processing_2(
+        v0: pavex::Response,
+        v1: pavex::cookie::ResponseCookies,
+        v2: &biscotti::Processor,
+        v3: &pavex_tracing::RootSpan,
+    ) -> pavex::Response {
+        let v4 = pavex::cookie::inject_response_cookies(v0, v1, v2);
+        let v5 = match v4 {
+            Ok(ok) => ok,
+            Err(v5) => {
+                return {
+                    let v6 = pavex::cookie::errors::InjectResponseCookiesError::into_response(
+                        &v5,
+                    );
+                    let v7 = pavex::Error::new(v5);
+                    app::telemetry::error_logger(&v7, v3).await;
+                    <pavex::Response as pavex::IntoResponse>::into_response(v6)
+                };
+            }
+        };
+        <pavex::Response as pavex::IntoResponse>::into_response(v5)
+    }
+    struct Next0<'a, 'b, 'c, 'd, 'e, 'f, 'g, T>
+    where
+        T: std::future::Future<Output = pavex::Response>,
+    {
+        s_0: &'a biscotti::Processor,
+        s_1: pavex::request::path::RawPathParams<'b, 'c>,
+        s_2: pavex::request::body::RawIncomingBody,
+        s_3: &'d pavex::request::RequestHead,
+        s_4: &'e sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
+        s_5: pavex::request::path::MatchedPathPattern,
+        s_6: &'f pavex_session::SessionConfig,
+        s_7: &'g pavex_session::SessionStore,
+        next: fn(
+            &'a biscotti::Processor,
+            pavex::request::path::RawPathParams<'b, 'c>,
+            pavex::request::body::RawIncomingBody,
+            &'d pavex::request::RequestHead,
+            &'e sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
+            pavex::request::path::MatchedPathPattern,
+            &'f pavex_session::SessionConfig,
+            &'g pavex_session::SessionStore,
+        ) -> T,
+    }
+    impl<'a, 'b, 'c, 'd, 'e, 'f, 'g, T> std::future::IntoFuture
+    for Next0<'a, 'b, 'c, 'd, 'e, 'f, 'g, T>
+    where
+        T: std::future::Future<Output = pavex::Response>,
+    {
+        type Output = pavex::Response;
+        type IntoFuture = T;
+        fn into_future(self) -> Self::IntoFuture {
+            (self
+                .next)(
+                self.s_0,
+                self.s_1,
+                self.s_2,
+                self.s_3,
+                self.s_4,
+                self.s_5,
+                self.s_6,
+                self.s_7,
+            )
+        }
+    }
+    struct Next1<'a, 'b, 'c, 'd, 'e, 'f, 'g, T>
+    where
+        T: std::future::Future<Output = pavex::Response>,
+    {
+        s_0: pavex::cookie::ResponseCookies,
+        s_1: &'a biscotti::Processor,
+        s_2: &'b pavex_tracing::RootSpan,
+        s_3: pavex_session::Session<'c>,
+        s_4: pavex::request::path::RawPathParams<'d, 'e>,
+        s_5: pavex::request::body::RawIncomingBody,
+        s_6: &'f pavex::request::RequestHead,
+        s_7: &'g sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
+        next: fn(
+            pavex::cookie::ResponseCookies,
+            &'a biscotti::Processor,
+            &'b pavex_tracing::RootSpan,
+            pavex_session::Session<'c>,
+            pavex::request::path::RawPathParams<'d, 'e>,
+            pavex::request::body::RawIncomingBody,
+            &'f pavex::request::RequestHead,
+            &'g sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
+        ) -> T,
+    }
+    impl<'a, 'b, 'c, 'd, 'e, 'f, 'g, T> std::future::IntoFuture
+    for Next1<'a, 'b, 'c, 'd, 'e, 'f, 'g, T>
+    where
+        T: std::future::Future<Output = pavex::Response>,
+    {
+        type Output = pavex::Response;
+        type IntoFuture = T;
+        fn into_future(self) -> Self::IntoFuture {
+            (self
+                .next)(
+                self.s_0,
+                self.s_1,
+                self.s_2,
+                self.s_3,
+                self.s_4,
+                self.s_5,
+                self.s_6,
+                self.s_7,
+            )
+        }
+    }
+}
+pub mod route_4 {
+    pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f, 'g>(
+        s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::path::RawPathParams<'a, 'b>,
         s_2: &'c biscotti::Processor,
         s_3: &'d sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
@@ -1582,7 +1931,7 @@ pub mod route_3 {
         v5: &pavex_session::SessionConfig,
         v6: &pavex_session::SessionStore,
     ) -> pavex::Response {
-        let v7 = crate::route_3::Next0 {
+        let v7 = crate::route_4::Next0 {
             s_0: v2,
             s_1: v1,
             s_2: v3,
@@ -1627,7 +1976,7 @@ pub mod route_3 {
         let v12 = pavex_session::IncomingSession::extract(&v8, v11);
         let v13 = pavex_session::Session::new(v5, v4, v12);
         let v14 = pavex::cookie::ResponseCookies::new();
-        let v15 = crate::route_3::Next1 {
+        let v15 = crate::route_4::Next1 {
             s_0: v14,
             s_1: v0,
             s_2: &v10,
@@ -1809,7 +2158,7 @@ pub mod route_3 {
         }
     }
 }
-pub mod route_4 {
+pub mod route_5 {
     pub async fn entrypoint<'a, 'b, 'c, 'd>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: &'a biscotti::Processor,
@@ -1852,7 +2201,7 @@ pub mod route_4 {
         v3: &pavex_session::SessionConfig,
         v4: &pavex_session::SessionStore,
     ) -> pavex::Response {
-        let v5 = crate::route_4::Next0 {
+        let v5 = crate::route_5::Next0 {
             s_0: v1,
             s_1: v2,
             s_2: v3,
@@ -1874,7 +2223,7 @@ pub mod route_4 {
         let v5 = pavex::telemetry::ServerRequestId::generate();
         let v6 = app::telemetry::root_span(v1, v0, v5);
         let v7 = pavex::cookie::ResponseCookies::new();
-        let v8 = crate::route_4::Next1 {
+        let v8 = crate::route_5::Next1 {
             s_0: v7,
             s_1: v2,
             s_2: &v6,
@@ -2018,7 +2367,7 @@ pub mod route_4 {
         }
     }
 }
-pub mod route_5 {
+pub mod route_6 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::body::RawIncomingBody,
@@ -2067,7 +2416,7 @@ pub mod route_5 {
         v5: &pavex_session::SessionConfig,
         v6: &pavex_session::SessionStore,
     ) -> pavex::Response {
-        let v7 = crate::route_5::Next0 {
+        let v7 = crate::route_6::Next0 {
             s_0: v2,
             s_1: v1,
             s_2: v3,
@@ -2112,7 +2461,7 @@ pub mod route_5 {
         let v12 = pavex_session::IncomingSession::extract(&v8, v11);
         let v13 = pavex_session::Session::new(v5, v4, v12);
         let v14 = pavex::cookie::ResponseCookies::new();
-        let v15 = crate::route_5::Next1 {
+        let v15 = crate::route_6::Next1 {
             s_0: v14,
             s_1: v0,
             s_2: &v10,
@@ -2297,7 +2646,7 @@ pub mod route_5 {
         }
     }
 }
-pub mod route_6 {
+pub mod route_7 {
     pub async fn entrypoint<'a, 'b, 'c, 'd>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: &'a biscotti::Processor,
@@ -2337,7 +2686,7 @@ pub mod route_6 {
         v3: &pavex_session::SessionConfig,
         v4: &pavex_session::SessionStore,
     ) -> pavex::Response {
-        let v5 = crate::route_6::Next0 {
+        let v5 = crate::route_7::Next0 {
             s_0: v1,
             s_1: v2,
             s_2: v0,
@@ -2378,7 +2727,7 @@ pub mod route_6 {
         let v10 = pavex_session::IncomingSession::extract(&v6, v9);
         let v11 = pavex_session::Session::new(v4, v3, v10);
         let v12 = pavex::cookie::ResponseCookies::new();
-        let v13 = crate::route_6::Next1 {
+        let v13 = crate::route_7::Next1 {
             s_0: v12,
             s_1: v0,
             s_2: &v8,
@@ -2497,7 +2846,7 @@ pub mod route_6 {
         }
     }
 }
-pub mod route_7 {
+pub mod route_8 {
     pub async fn entrypoint<'a, 'b, 'c, 'd>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: &'a biscotti::Processor,
@@ -2540,7 +2889,7 @@ pub mod route_7 {
         v3: &pavex_session::SessionConfig,
         v4: &pavex_session::SessionStore,
     ) -> pavex::Response {
-        let v5 = crate::route_7::Next0 {
+        let v5 = crate::route_8::Next0 {
             s_0: v1,
             s_1: v2,
             s_2: v3,
@@ -2562,7 +2911,7 @@ pub mod route_7 {
         let v5 = pavex::telemetry::ServerRequestId::generate();
         let v6 = app::telemetry::root_span(v1, v0, v5);
         let v7 = pavex::cookie::ResponseCookies::new();
-        let v8 = crate::route_7::Next1 {
+        let v8 = crate::route_8::Next1 {
             s_0: v7,
             s_1: v2,
             s_2: &v6,
@@ -2706,7 +3055,7 @@ pub mod route_7 {
         }
     }
 }
-pub mod route_8 {
+pub mod route_9 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::body::RawIncomingBody,
@@ -2755,7 +3104,7 @@ pub mod route_8 {
         v5: &pavex_session::SessionConfig,
         v6: &pavex_session::SessionStore,
     ) -> pavex::Response {
-        let v7 = crate::route_8::Next0 {
+        let v7 = crate::route_9::Next0 {
             s_0: v2,
             s_1: v1,
             s_2: v3,
@@ -2800,7 +3149,7 @@ pub mod route_8 {
         let v12 = pavex_session::IncomingSession::extract(&v8, v11);
         let v13 = pavex_session::Session::new(v5, v4, v12);
         let v14 = pavex::cookie::ResponseCookies::new();
-        let v15 = crate::route_8::Next1 {
+        let v15 = crate::route_9::Next1 {
             s_0: v14,
             s_1: v0,
             s_2: &v10,
@@ -2985,7 +3334,7 @@ pub mod route_8 {
         }
     }
 }
-pub mod route_9 {
+pub mod route_10 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::body::RawIncomingBody,
@@ -3040,7 +3389,7 @@ pub mod route_9 {
         v6: &jsonwebtoken::DecodingKey,
         v7: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
     ) -> pavex::Response {
-        let v8 = crate::route_9::Next0 {
+        let v8 = crate::route_10::Next0 {
             s_0: v2,
             s_1: v3,
             s_2: v4,
@@ -3068,7 +3417,7 @@ pub mod route_9 {
         let v8 = pavex::telemetry::ServerRequestId::generate();
         let v9 = app::telemetry::root_span(v2, v1, v8);
         let v10 = pavex::cookie::ResponseCookies::new();
-        let v11 = crate::route_9::Next1 {
+        let v11 = crate::route_10::Next1 {
             s_0: v10,
             s_1: v3,
             s_2: &v9,
@@ -3308,7 +3657,7 @@ pub mod route_9 {
         }
     }
 }
-pub mod route_10 {
+pub mod route_11 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::path::RawPathParams<'a, 'b>,
@@ -3363,7 +3712,7 @@ pub mod route_10 {
         v6: &jsonwebtoken::DecodingKey,
         v7: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
     ) -> pavex::Response {
-        let v8 = crate::route_10::Next0 {
+        let v8 = crate::route_11::Next0 {
             s_0: v2,
             s_1: v3,
             s_2: v4,
@@ -3391,7 +3740,7 @@ pub mod route_10 {
         let v8 = pavex::telemetry::ServerRequestId::generate();
         let v9 = app::telemetry::root_span(v2, v1, v8);
         let v10 = pavex::cookie::ResponseCookies::new();
-        let v11 = crate::route_10::Next1 {
+        let v11 = crate::route_11::Next1 {
             s_0: v10,
             s_1: v3,
             s_2: &v9,
@@ -3616,7 +3965,7 @@ pub mod route_10 {
         }
     }
 }
-pub mod route_11 {
+pub mod route_12 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: &'a biscotti::Processor,
@@ -3667,7 +4016,7 @@ pub mod route_11 {
         v5: &jsonwebtoken::DecodingKey,
         v6: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
     ) -> pavex::Response {
-        let v7 = crate::route_11::Next0 {
+        let v7 = crate::route_12::Next0 {
             s_0: v1,
             s_1: v2,
             s_2: v3,
@@ -3693,7 +4042,7 @@ pub mod route_11 {
         let v7 = pavex::telemetry::ServerRequestId::generate();
         let v8 = app::telemetry::root_span(v1, v0, v7);
         let v9 = pavex::cookie::ResponseCookies::new();
-        let v10 = crate::route_11::Next1 {
+        let v10 = crate::route_12::Next1 {
             s_0: v9,
             s_1: v2,
             s_2: &v8,
@@ -3896,7 +4245,7 @@ pub mod route_11 {
         }
     }
 }
-pub mod route_12 {
+pub mod route_13 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::body::RawIncomingBody,
@@ -3955,7 +4304,7 @@ pub mod route_12 {
         v7: &jsonwebtoken::DecodingKey,
         v8: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
     ) -> pavex::Response {
-        let v9 = crate::route_12::Next0 {
+        let v9 = crate::route_13::Next0 {
             s_0: v3,
             s_1: v4,
             s_2: v5,
@@ -3985,7 +4334,7 @@ pub mod route_12 {
         let v9 = pavex::telemetry::ServerRequestId::generate();
         let v10 = app::telemetry::root_span(v3, v2, v9);
         let v11 = pavex::cookie::ResponseCookies::new();
-        let v12 = crate::route_12::Next1 {
+        let v12 = crate::route_13::Next1 {
             s_0: v11,
             s_1: v4,
             s_2: &v10,
@@ -4247,7 +4596,7 @@ pub mod route_12 {
         }
     }
 }
-pub mod route_13 {
+pub mod route_14 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::body::RawIncomingBody,
@@ -4302,7 +4651,7 @@ pub mod route_13 {
         v6: &jsonwebtoken::DecodingKey,
         v7: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
     ) -> pavex::Response {
-        let v8 = crate::route_13::Next0 {
+        let v8 = crate::route_14::Next0 {
             s_0: v2,
             s_1: v3,
             s_2: v4,
@@ -4330,7 +4679,7 @@ pub mod route_13 {
         let v8 = pavex::telemetry::ServerRequestId::generate();
         let v9 = app::telemetry::root_span(v2, v1, v8);
         let v10 = pavex::cookie::ResponseCookies::new();
-        let v11 = crate::route_13::Next1 {
+        let v11 = crate::route_14::Next1 {
             s_0: v10,
             s_1: v3,
             s_2: &v9,
@@ -4570,7 +4919,7 @@ pub mod route_13 {
         }
     }
 }
-pub mod route_14 {
+pub mod route_15 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::path::RawPathParams<'a, 'b>,
@@ -4625,7 +4974,7 @@ pub mod route_14 {
         v6: &jsonwebtoken::DecodingKey,
         v7: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
     ) -> pavex::Response {
-        let v8 = crate::route_14::Next0 {
+        let v8 = crate::route_15::Next0 {
             s_0: v2,
             s_1: v3,
             s_2: v4,
@@ -4653,7 +5002,7 @@ pub mod route_14 {
         let v8 = pavex::telemetry::ServerRequestId::generate();
         let v9 = app::telemetry::root_span(v2, v1, v8);
         let v10 = pavex::cookie::ResponseCookies::new();
-        let v11 = crate::route_14::Next1 {
+        let v11 = crate::route_15::Next1 {
             s_0: v10,
             s_1: v3,
             s_2: &v9,
@@ -4878,7 +5227,7 @@ pub mod route_14 {
         }
     }
 }
-pub mod route_15 {
+pub mod route_16 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: &'a biscotti::Processor,
@@ -4929,7 +5278,7 @@ pub mod route_15 {
         v5: &jsonwebtoken::DecodingKey,
         v6: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
     ) -> pavex::Response {
-        let v7 = crate::route_15::Next0 {
+        let v7 = crate::route_16::Next0 {
             s_0: v1,
             s_1: v2,
             s_2: v3,
@@ -4955,7 +5304,7 @@ pub mod route_15 {
         let v7 = pavex::telemetry::ServerRequestId::generate();
         let v8 = app::telemetry::root_span(v1, v0, v7);
         let v9 = pavex::cookie::ResponseCookies::new();
-        let v10 = crate::route_15::Next1 {
+        let v10 = crate::route_16::Next1 {
             s_0: v9,
             s_1: v2,
             s_2: &v8,
@@ -5158,7 +5507,7 @@ pub mod route_15 {
         }
     }
 }
-pub mod route_16 {
+pub mod route_17 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::body::RawIncomingBody,
@@ -5217,7 +5566,7 @@ pub mod route_16 {
         v7: &jsonwebtoken::DecodingKey,
         v8: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
     ) -> pavex::Response {
-        let v9 = crate::route_16::Next0 {
+        let v9 = crate::route_17::Next0 {
             s_0: v3,
             s_1: v4,
             s_2: v5,
@@ -5247,7 +5596,7 @@ pub mod route_16 {
         let v9 = pavex::telemetry::ServerRequestId::generate();
         let v10 = app::telemetry::root_span(v3, v2, v9);
         let v11 = pavex::cookie::ResponseCookies::new();
-        let v12 = crate::route_16::Next1 {
+        let v12 = crate::route_17::Next1 {
             s_0: v11,
             s_1: v4,
             s_2: &v10,
@@ -5509,7 +5858,7 @@ pub mod route_16 {
         }
     }
 }
-pub mod route_17 {
+pub mod route_18 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: &'a biscotti::Processor,
@@ -5560,7 +5909,7 @@ pub mod route_17 {
         v5: &jsonwebtoken::DecodingKey,
         v6: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
     ) -> pavex::Response {
-        let v7 = crate::route_17::Next0 {
+        let v7 = crate::route_18::Next0 {
             s_0: v1,
             s_1: v2,
             s_2: v3,
@@ -5586,7 +5935,7 @@ pub mod route_17 {
         let v7 = pavex::telemetry::ServerRequestId::generate();
         let v8 = app::telemetry::root_span(v1, v0, v7);
         let v9 = pavex::cookie::ResponseCookies::new();
-        let v10 = crate::route_17::Next1 {
+        let v10 = crate::route_18::Next1 {
             s_0: v9,
             s_1: v2,
             s_2: &v8,
@@ -5789,7 +6138,7 @@ pub mod route_17 {
         }
     }
 }
-pub mod route_18 {
+pub mod route_19 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::body::RawIncomingBody,
@@ -5844,7 +6193,7 @@ pub mod route_18 {
         v6: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
         v7: &jsonwebtoken::EncodingKey,
     ) -> pavex::Response {
-        let v8 = crate::route_18::Next0 {
+        let v8 = crate::route_19::Next0 {
             s_0: v2,
             s_1: v3,
             s_2: v4,
@@ -5872,7 +6221,7 @@ pub mod route_18 {
         let v8 = pavex::telemetry::ServerRequestId::generate();
         let v9 = app::telemetry::root_span(v2, v1, v8);
         let v10 = pavex::cookie::ResponseCookies::new();
-        let v11 = crate::route_18::Next1 {
+        let v11 = crate::route_19::Next1 {
             s_0: v10,
             s_1: v3,
             s_2: &v9,
@@ -6100,7 +6449,7 @@ pub mod route_18 {
         }
     }
 }
-pub mod route_19 {
+pub mod route_20 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::body::RawIncomingBody,
@@ -6155,7 +6504,7 @@ pub mod route_19 {
         v6: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
         v7: &jsonwebtoken::EncodingKey,
     ) -> pavex::Response {
-        let v8 = crate::route_19::Next0 {
+        let v8 = crate::route_20::Next0 {
             s_0: v2,
             s_1: v3,
             s_2: v4,
@@ -6183,7 +6532,7 @@ pub mod route_19 {
         let v8 = pavex::telemetry::ServerRequestId::generate();
         let v9 = app::telemetry::root_span(v2, v1, v8);
         let v10 = pavex::cookie::ResponseCookies::new();
-        let v11 = crate::route_19::Next1 {
+        let v11 = crate::route_20::Next1 {
             s_0: v10,
             s_1: v3,
             s_2: &v9,
@@ -6411,7 +6760,7 @@ pub mod route_19 {
         }
     }
 }
-pub mod route_20 {
+pub mod route_21 {
     pub async fn entrypoint<'a, 'b, 'c, 'd, 'e, 'f>(
         s_0: pavex::request::path::MatchedPathPattern,
         s_1: pavex::request::body::RawIncomingBody,
@@ -6466,7 +6815,7 @@ pub mod route_20 {
         v6: &jsonwebtoken::DecodingKey,
         v7: &sqlx_core::pool::Pool<sqlx_sqlite::Sqlite>,
     ) -> pavex::Response {
-        let v8 = crate::route_20::Next0 {
+        let v8 = crate::route_21::Next0 {
             s_0: v2,
             s_1: v3,
             s_2: v4,
@@ -6494,7 +6843,7 @@ pub mod route_20 {
         let v8 = pavex::telemetry::ServerRequestId::generate();
         let v9 = app::telemetry::root_span(v2, v1, v8);
         let v10 = pavex::cookie::ResponseCookies::new();
-        let v11 = crate::route_20::Next1 {
+        let v11 = crate::route_21::Next1 {
             s_0: v10,
             s_1: v3,
             s_2: &v9,

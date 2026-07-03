@@ -1,10 +1,13 @@
-use crate::{routes::api::labels::repo, schemas::Label, session_auth::SessionUserId};
+use crate::{
+    routes::api::labels::repo,
+    schemas::{CreateLabelBody, Label, UpdateLabelBody},
+    session_auth::SessionUserId,
+};
 use askama::Template;
-use htmx_macro::{hx_delete, hx_get, hx_post};
 use pavex::{
     Response, delete, get,
     http::HeaderValue,
-    post,
+    post, put,
     request::{body::UrlEncodedBody, path::PathParams},
 };
 use sqlx::SqlitePool;
@@ -36,22 +39,15 @@ struct LabelRow {
     label: Label,
 }
 
-#[derive(serde::Deserialize)]
-pub struct CreateLabelForm {
-    pub name: String,
-    pub color: String,
-}
-
 #[post(path = "/labels")]
 pub async fn create_label_page(
-    body: UrlEncodedBody<CreateLabelForm>,
+    body: UrlEncodedBody<CreateLabelBody>,
     user: &SessionUserId,
     pool: &SqlitePool,
 ) -> Result<Response, LabelsPageError> {
-    let CreateLabelForm { name, color } = body.0;
     let user_id = user.0.to_string();
 
-    let label = repo::create(&user_id, &name, &color, pool)
+    let label = repo::create(&user_id, &body.0, pool)
         .await
         .map_err(|e| LabelsPageError::UnexpectedError(e.into()))?;
 
@@ -62,6 +58,25 @@ pub async fn create_label_page(
 #[PathParams]
 pub struct LabelIdParam {
     pub id: i64,
+}
+
+#[put(path = "/labels/{id}")]
+pub async fn update_label_page(
+    params: PathParams<LabelIdParam>,
+    body: UrlEncodedBody<UpdateLabelBody>,
+    user: &SessionUserId,
+    pool: &SqlitePool,
+) -> Result<Response, LabelsPageError> {
+    let LabelIdParam { id } = params.0;
+    let user_id = user.0.to_string();
+
+    let label = repo::update(&user_id, id, &body.0, pool)
+        .await
+        .map_err(|e| LabelsPageError::UnexpectedError(e.into()))?
+        .ok_or_else(|| LabelsPageError::UnexpectedError(anyhow::anyhow!("Label not found")))?;
+
+    let html = LabelRow { label }.render().expect("render failed");
+    Ok(html_response(html))
 }
 
 #[delete(path = "/labels/{id}")]

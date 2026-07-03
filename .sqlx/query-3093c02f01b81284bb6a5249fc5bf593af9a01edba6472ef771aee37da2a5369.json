@@ -1,0 +1,62 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT id, user_id as \"user_id: Uuid\", title, description, duration, rrule, label_id, created_at as \"created_at: OffsetDateTime\"\n        FROM todos WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "user_id: Uuid",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "title",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "description",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "duration",
+        "ordinal": 4,
+        "type_info": "Integer"
+      },
+      {
+        "name": "rrule",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "label_id",
+        "ordinal": 6,
+        "type_info": "Integer"
+      },
+      {
+        "name": "created_at: OffsetDateTime",
+        "ordinal": 7,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "3093c02f01b81284bb6a5249fc5bf593af9a01edba6472ef771aee37da2a5369"
+}

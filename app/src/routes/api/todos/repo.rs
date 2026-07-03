@@ -1,4 +1,4 @@
-use crate::schemas::Todo;
+use crate::schemas::{CreateTodoBody, Todo, UpdateTodoBody};
 use sqlx::SqlitePool;
 use time::OffsetDateTime;
 use uuid::Uuid;
@@ -30,46 +30,46 @@ pub async fn list_for_user(user_id: &str, pool: &SqlitePool) -> Result<Vec<Todo>
 
 pub async fn create(
     user_id: &str,
-    title: &str,
-    description: Option<&str>,
-    duration: Option<i64>,
-    rrule: Option<&str>,
-    label_id: Option<i64>,
+    fields: &CreateTodoBody,
     pool: &SqlitePool,
 ) -> Result<Todo, sqlx::Error> {
     let id = sqlx::query!(
         r#"INSERT INTO todos (user_id, title, description, duration, rrule, label_id) VALUES (?, ?, ?, ?, ?, ?)"#,
         user_id,
-        title,
-        description,
-        duration,
-        rrule,
-        label_id,
+        fields.title,
+        fields.description,
+        fields.duration,
+        fields.rrule,
+        fields.label_id,
     )
     .execute(pool)
     .await?
     .last_insert_rowid();
 
-    Ok(Todo {
+    let row = sqlx::query!(
+        r#"SELECT id, user_id as "user_id: Uuid", title, description, duration, rrule, label_id, created_at as "created_at: OffsetDateTime"
+        FROM todos WHERE id = ?"#,
         id,
-        user_id: user_id.parse().unwrap(),
-        title: title.to_owned(),
-        description: description.map(str::to_owned),
-        duration,
-        rrule: rrule.map(str::to_owned),
-        label_id,
-        created_at: OffsetDateTime::now_utc(),
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(Todo {
+        id: row.id,
+        user_id: row.user_id,
+        title: row.title,
+        description: row.description,
+        duration: row.duration,
+        rrule: row.rrule,
+        label_id: row.label_id,
+        created_at: row.created_at,
     })
 }
 
 pub async fn update(
     user_id: &str,
     id: i64,
-    title: Option<&str>,
-    description: Option<&str>,
-    duration: Option<i64>,
-    rrule: Option<&str>,
-    label_id: Option<i64>,
+    fields: &UpdateTodoBody,
     pool: &SqlitePool,
 ) -> Result<Option<Todo>, sqlx::Error> {
     let result = sqlx::query!(
@@ -82,11 +82,11 @@ pub async fn update(
             label_id = COALESCE(?, label_id)
         WHERE id = ? AND user_id = ?
         "#,
-        title,
-        description,
-        duration,
-        rrule,
-        label_id,
+        fields.title,
+        fields.description,
+        fields.duration,
+        fields.rrule,
+        fields.label_id,
         id,
         user_id,
     )
@@ -98,7 +98,8 @@ pub async fn update(
     }
 
     let row = sqlx::query!(
-        r#"SELECT id, title, description, duration, rrule, label_id FROM todos WHERE id = ? AND user_id = ?"#,
+        r#"SELECT id, user_id as "user_id: Uuid", title, description, duration, rrule, label_id, created_at as "created_at: OffsetDateTime"
+        FROM todos WHERE id = ? AND user_id = ?"#,
         id,
         user_id,
     )
@@ -107,13 +108,13 @@ pub async fn update(
 
     Ok(Some(Todo {
         id: row.id,
-        user_id: user_id.parse().unwrap(),
+        user_id: row.user_id,
         title: row.title,
         description: row.description,
         duration: row.duration,
         rrule: row.rrule,
         label_id: row.label_id,
-        created_at: OffsetDateTime::now_utc(),
+        created_at: row.created_at,
     }))
 }
 

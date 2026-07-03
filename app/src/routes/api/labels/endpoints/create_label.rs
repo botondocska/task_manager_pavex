@@ -1,12 +1,10 @@
-use crate::{jwt_auth::Claims, routes::api::labels::repo, schemas::Label};
+use crate::{
+    jwt_auth::Claims,
+    routes::api::labels::repo,
+    schemas::{CreateLabelBody, Label},
+};
 use pavex::{Response, methods, post, request::body::JsonBody, response::body::Json};
 use sqlx::SqlitePool;
-
-#[derive(serde::Deserialize)]
-pub struct CreateLabel {
-    pub name: String,
-    pub color: String,
-}
 
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -16,14 +14,13 @@ pub struct CreateLabelResponse {
 
 #[post(path = "/labels")]
 pub async fn create_label(
-    body: JsonBody<CreateLabel>,
+    body: JsonBody<CreateLabelBody>,
     claims: &Claims,
     pool: &SqlitePool,
 ) -> Result<Response, LabelError> {
-    let CreateLabel { name, color } = body.0;
     let user_id = claims.user_id().to_string();
 
-    let label = repo::create(&user_id, &name, &color, pool)
+    let label = repo::create(&user_id, &body.0, pool)
         .await
         .map_err(|e| LabelError::UnexpectedError(e.into()))?; //.map_err(|e| LabelError::UnexpectedError(anyhow::Error::new(e).context("Failed to create label")))?
 

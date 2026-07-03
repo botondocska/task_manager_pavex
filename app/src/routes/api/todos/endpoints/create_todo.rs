@@ -1,15 +1,10 @@
-use crate::{jwt_auth::Claims, routes::api::todos::repo, schemas::Todo};
+use crate::{
+    jwt_auth::Claims,
+    routes::api::todos::repo,
+    schemas::{CreateTodoBody, Todo},
+};
 use pavex::{Response, methods, post, request::body::JsonBody, response::body::Json};
 use sqlx::SqlitePool;
-
-#[derive(serde::Deserialize)]
-pub struct CreateTodo {
-    pub title: String,
-    pub description: Option<String>,
-    pub duration: Option<i64>,
-    pub rrule: Option<String>,
-    pub label_id: Option<i64>,
-}
 
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -19,30 +14,15 @@ pub struct CreateTodoResponse {
 
 #[post(path = "/todos")]
 pub async fn create_todo(
-    body: JsonBody<CreateTodo>,
+    body: JsonBody<CreateTodoBody>,
     claims: &Claims,
     pool: &SqlitePool,
 ) -> Result<Response, TodoError> {
-    let CreateTodo {
-        title,
-        description,
-        duration,
-        rrule,
-        label_id,
-    } = body.0;
     let user_id = claims.user_id().to_string();
 
-    let todo = repo::create(
-        &user_id,
-        &title,
-        description.as_deref(),
-        duration,
-        rrule.as_deref(),
-        label_id,
-        pool,
-    )
-    .await
-    .map_err(|e| TodoError::UnexpectedError(e.into()))?; //.map_err(|e| TodoError::UnexpectedError(anyhow::Error::new(e).context("Failed to create todo")))?
+    let todo = repo::create(&user_id, &body.0, pool)
+        .await
+        .map_err(|e| TodoError::UnexpectedError(e.into()))?;
 
     let body = Json::new(CreateTodoResponse { todo })
         .map_err(Into::into)
