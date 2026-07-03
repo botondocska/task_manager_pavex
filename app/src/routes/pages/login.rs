@@ -1,4 +1,4 @@
-use crate::routes::users::password::validate_credentials;
+use crate::routes::api::users::password::validate_credentials;
 use askama::Template;
 use htmx_macro::{hx_get, hx_post};
 use pavex::{Response, http::HeaderValue, request::body::UrlEncodedBody};

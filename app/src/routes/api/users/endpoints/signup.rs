@@ -1,5 +1,5 @@
 use crate::{
-    jwt_auth::encode_token, routes::users::password::compute_password_hash, schemas::User,
+    jwt_auth::encode_token, routes::api::users::password::compute_password_hash, schemas::User,
 };
 use jsonwebtoken::EncodingKey;
 use pavex::{Response, methods, post, request::body::JsonBody, response::body::Json};

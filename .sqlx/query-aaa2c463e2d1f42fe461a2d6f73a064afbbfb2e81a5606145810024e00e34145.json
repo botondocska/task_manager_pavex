@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE labels SET\n            name  = COALESCE(?, name),\n            color = COALESCE(?, color)\n        WHERE id = ? AND user_id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "aaa2c463e2d1f42fe461a2d6f73a064afbbfb2e81a5606145810024e00e34145"
+}

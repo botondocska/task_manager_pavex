@@ -1,5 +1,6 @@
 //! Typed schemas shared across routes.
 use secrecy::{ExposeSecret, Secret};
+use time::OffsetDateTime;
 
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -30,5 +31,59 @@ where
     match secret {
         Some(s) => serializer.serialize_str(s.expose_secret()),
         None => serializer.serialize_none(),
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Label {
+    pub id: i64,
+    pub name: String,
+    pub color: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Todo {
+    pub id: i64,
+    pub user_id: uuid::Uuid,
+    pub label_id: Option<i64>,
+    /// Duration in minutes.
+    pub duration: Option<i64>,
+    /// RRULE string (RFC 5545), if this todo recurs. `None` for one-off todos.
+    pub rrule: Option<String>,
+    pub title: String,
+    pub description: Option<String>,
+    #[serde(with = "time::serde::rfc3339")]
+    pub created_at: OffsetDateTime,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TodoHistory {
+    pub id: i64,
+    pub completed_todo_id: i64,
+    #[serde(with = "time::serde::rfc3339")]
+    pub created_at: OffsetDateTime,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn todo_serializes() {
+        let t = Todo {
+            id: 1,
+            user_id: uuid::Uuid::new_v4(),
+            label_id: None,
+            duration: None,
+            rrule: None,
+            title: "test".into(),
+            description: None,
+            created_at: OffsetDateTime::now_utc(),
+        };
+        let json = serde_json::to_string(&t).expect("should serialize");
+        println!("{json}");
     }
 }

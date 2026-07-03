@@ -19,7 +19,7 @@ pub fn blueprint() -> Blueprint {
     telemetry::instrument(&mut bp);
     bp.post_process(FINALIZE_SESSION);
     bp.post_process(INJECT_RESPONSE_COOKIES);
-    bp.routes(from![crate::routes::pages]);
-    bp.prefix("/api").routes(from![crate::routes::users]);
+    bp.routes(from![crate::routes::pages]); //pages use session
+    bp.prefix("/api").routes(from![crate::routes::api]); //api uses jwt
     bp
 }

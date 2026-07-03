@@ -1,4 +1,4 @@
-use crate::{jwt_auth, routes::users::password, schemas::User};
+use crate::{jwt_auth, routes::api::users::password, schemas::User};
 use anyhow::Context;
 use jsonwebtoken::EncodingKey;
 use pavex::response::body::Json;

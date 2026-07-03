@@ -1,4 +1,4 @@
-use crate::{jwt_auth::Claims, routes::users::password::compute_password_hash, schemas::User};
+use crate::{jwt_auth::Claims, routes::api::users::password::compute_password_hash, schemas::User};
 use anyhow::Context;
 use pavex::{Response, methods, put, request::body::JsonBody, response::body::Json};
 use secrecy::Secret;
@@ -51,7 +51,7 @@ pub async fn update_user(
             password_hash = COALESCE(?, password_hash),
             bio           = COALESCE(?, bio),
             image         = COALESCE(?, image),
-            updated_at    = datetime('now')
+            updated_at    = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
         WHERE id = ?
         "#,
         details.email,

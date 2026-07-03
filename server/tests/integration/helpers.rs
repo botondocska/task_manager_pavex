@@ -156,3 +156,50 @@ impl TestApi {
             .to_owned()
     }
 }
+
+
+impl TestApi {
+    pub async fn post_label<Body>(&self, token: &str, body: &Body) -> reqwest::Response
+    where
+        Body: serde::Serialize,
+    {
+        self.api_client
+            .post(&format!("{}/api/labels", &self.api_address))
+            .header("Authorization", format!("Bearer {token}"))
+            .json(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn get_labels(&self, token: &str) -> reqwest::Response {
+        self.api_client
+            .get(&format!("{}/api/labels", &self.api_address))
+            .header("Authorization", format!("Bearer {token}"))
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn put_label<Body>(&self, token: &str, id: i64, body: &Body) -> reqwest::Response
+    where
+        Body: serde::Serialize,
+    {
+        self.api_client
+            .put(&format!("{}/api/labels/{id}", &self.api_address))
+            .header("Authorization", format!("Bearer {token}"))
+            .json(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn delete_label(&self, token: &str, id: i64) -> reqwest::Response {
+        self.api_client
+            .delete(&format!("{}/api/labels/{id}", &self.api_address))
+            .header("Authorization", format!("Bearer {token}"))
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+}
