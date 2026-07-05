@@ -1,7 +1,11 @@
 use crate::routes::api::users::password::compute_password_hash;
 use askama::Template;
 use htmx_macro::{hx_get, hx_post};
-use pavex::{Response, http::HeaderValue, request::body::UrlEncodedBody};
+use pavex::{
+    Response,
+    http::{HeaderValue, header::HeaderName},
+    request::body::UrlEncodedBody,
+};
 use pavex_session::Session;
 use secrecy::Secret;
 use sqlx::SqlitePool;
@@ -58,7 +62,7 @@ pub async fn signup_submit(
                 .await
                 .expect("Failed to insert session");
             session.cycle_id();
-            render_success(username)
+            redirect_response("/")
         }
         Err(sqlx::Error::Database(ref e)) if e.is_unique_violation() => {
             render_error("That username or email is already taken.".into())
@@ -92,6 +96,13 @@ fn render_error(msg: String) -> Response {
     Response::ok().set_typed_body(html).insert_header(
         pavex::http::header::CONTENT_TYPE,
         HeaderValue::from_static("text/html; charset=utf-8"),
+    )
+}
+
+fn redirect_response(location: &'static str) -> Response {
+    Response::ok().insert_header(
+        HeaderName::from_static("hx-redirect"),
+        HeaderValue::from_static(location),
     )
 }
 

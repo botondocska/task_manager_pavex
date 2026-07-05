@@ -5,8 +5,25 @@
     <title>{% block title %}App{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script>
+    document.addEventListener('htmx:responseError', function (evt) {
+        const dialog = document.getElementById('error-dialog');
+        const msg = document.getElementById('error-dialog-message');
+        msg.innerHTML = evt.detail.xhr.responseText;
+        dialog.showModal();
+    });
+    </script>
 </head>
-<body class="bg-gray-50">
+<body class="min-h-screen bg-slate-100 text-slate-900">
     {% block content %}{% endblock %}
+    <dialog id="error-dialog" class="rounded-lg shadow-xl p-0 max-w-sm w-full backdrop:bg-black/40">
+    <div class="p-6">
+        <p id="error-dialog-message" class="text-red-700 text-sm"></p>
+        <button onclick="document.getElementById('error-dialog').close()"
+                class="mt-4 w-full bg-gray-200 py-2 rounded hover:bg-gray-300">
+        Close
+        </button>
+    </div>
+    </dialog>
 </body>
 </html>

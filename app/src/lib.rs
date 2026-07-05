@@ -5,6 +5,7 @@ mod blueprint;
 pub mod configuration;
 pub mod jwt_auth;
 pub mod routes;
+pub mod rrule_input;
 pub mod schemas;
 pub mod session_auth;
 pub mod telemetry;

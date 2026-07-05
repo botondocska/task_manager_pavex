@@ -1,0 +1,38 @@
+<li id="todo-{{ todo.id }}" class="bg-white border border-gray-200 rounded px-4 py-3">
+  <div class="flex items-start justify-between gap-3">
+    <div class="flex-1">
+      <div class="flex items-center gap-2">
+      {% if let Some(_) = todo.label_id %}
+        {% for label in labels %}
+          {% if todo.has_label(&label.id) %}
+            <span class="inline-block w-3 h-3 rounded-full" style="background-color: {{ label.color }}"></span>
+            <span class="text-xs text-gray-500">{{ label.name }}</span>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      </div>
+
+      <p class="font-medium text-gray-800 mt-1">{{ todo.title }}</p>
+
+      {% if let Some(desc) = todo.description %}
+        <p class="text-sm text-gray-500">{{ desc }}</p>
+      {% endif %}
+
+      <div class="flex items-center gap-3 mt-2 text-xs">
+        {% if let Some(d) = todo.duration %}
+          <span class="text-gray-500">{{ d }} min</span>
+        {% endif %}
+        {% if let Some(_) = todo.rrule %}
+          <span class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Repeats</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="flex gap-2 text-sm shrink-0">
+      <button hx-get="/todos/{{ todo.id }}/edit" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML"
+              class="text-blue-600 hover:underline">Edit</button>
+      <button hx-delete="/todos/{{ todo.id }}" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML"
+              class="text-red-600 hover:underline">Delete</button>
+    </div>
+  </div>
+</li>

@@ -1,7 +1,11 @@
 use crate::routes::api::users::password::validate_credentials;
 use askama::Template;
 use htmx_macro::{hx_get, hx_post};
-use pavex::{Response, http::HeaderValue, request::body::UrlEncodedBody};
+use pavex::{
+    Response,
+    http::{HeaderValue, header::HeaderName},
+    request::body::UrlEncodedBody,
+};
 use pavex_session::Session;
 use secrecy::Secret;
 use sqlx::SqlitePool;
@@ -44,14 +48,7 @@ pub async fn login_submit(
                 .await
                 .expect("Failed to insert session");
             session.cycle_id();
-            html_response(
-                LoginResult {
-                    success: true,
-                    error_message: String::new(),
-                }
-                .render()
-                .expect("render failed"),
-            )
+            redirect_response("/")
         }
         Err(_) => html_response(
             LoginResult {
@@ -68,5 +65,12 @@ fn html_response(html: String) -> Response {
     Response::ok().set_typed_body(html).insert_header(
         pavex::http::header::CONTENT_TYPE,
         HeaderValue::from_static("text/html; charset=utf-8"),
+    )
+}
+
+fn redirect_response(location: &'static str) -> Response {
+    Response::ok().insert_header(
+        HeaderName::from_static("hx-redirect"),
+        HeaderValue::from_static(location),
     )
 }

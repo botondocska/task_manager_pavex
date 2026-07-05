@@ -1,11 +1,13 @@
+use crate::rrule_input::RRuleField;
 use crate::schemas::{CreateTodoBody, Todo, UpdateTodoBody};
 use sqlx::SqlitePool;
+use std::str::FromStr;
 use time::OffsetDateTime;
 use uuid::Uuid;
 
 pub async fn list_for_user(user_id: &str, pool: &SqlitePool) -> Result<Vec<Todo>, sqlx::Error> {
     let rows = sqlx::query!(
-        r#"SELECT id, user_id as "user_id: Uuid", duration, rrule, title, description, label_id, created_at as "created_at: OffsetDateTime" 
+        r#"SELECT id, user_id, duration, rrule, title, description, label_id, created_at as "created_at: OffsetDateTime" 
         FROM todos 
         WHERE user_id = ?"#,
         user_id,
@@ -13,19 +15,29 @@ pub async fn list_for_user(user_id: &str, pool: &SqlitePool) -> Result<Vec<Todo>
     .fetch_all(pool)
     .await?;
 
-    Ok(rows
-        .into_iter()
-        .map(|r| Todo {
-            user_id: r.user_id,
-            id: r.id,
-            duration: r.duration,
-            rrule: r.rrule,
-            title: r.title,
-            description: r.description,
-            created_at: r.created_at,
-            label_id: r.label_id,
+    rows.into_iter()
+        .map(|r| {
+            let user_id = Uuid::parse_str(&r.user_id)
+                .map_err(|e| sqlx::Error::Decode(format!("invalid stored user_id: {e}").into()))?;
+            let rrule = r
+                .rrule
+                .as_deref()
+                .map(RRuleField::from_str)
+                .transpose()
+                .map_err(|e| sqlx::Error::Decode(format!("invalid stored rrule: {e}").into()))?;
+
+            Ok(Todo {
+                user_id,
+                id: r.id,
+                duration: r.duration,
+                rrule,
+                title: r.title,
+                description: r.description,
+                created_at: r.created_at,
+                label_id: r.label_id,
+            })
         })
-        .collect())
+        .collect()
 }
 
 pub async fn create(
@@ -33,13 +45,14 @@ pub async fn create(
     fields: &CreateTodoBody,
     pool: &SqlitePool,
 ) -> Result<Todo, sqlx::Error> {
+    let rrule_str = fields.rrule.as_ref().map(|r| r.0.to_string());
     let id = sqlx::query!(
         r#"INSERT INTO todos (user_id, title, description, duration, rrule, label_id) VALUES (?, ?, ?, ?, ?, ?)"#,
         user_id,
         fields.title,
         fields.description,
         fields.duration,
-        fields.rrule,
+        rrule_str,
         fields.label_id,
     )
     .execute(pool)
@@ -47,20 +60,28 @@ pub async fn create(
     .last_insert_rowid();
 
     let row = sqlx::query!(
-        r#"SELECT id, user_id as "user_id: Uuid", title, description, duration, rrule, label_id, created_at as "created_at: OffsetDateTime"
+        r#"SELECT id, user_id, title, description, duration, rrule, label_id, created_at as "created_at: OffsetDateTime"
         FROM todos WHERE id = ?"#,
         id,
     )
     .fetch_one(pool)
     .await?;
+    let user_id = Uuid::parse_str(&row.user_id)
+        .map_err(|e| sqlx::Error::Decode(format!("invalid stored user_id: {e}").into()))?;
+    let rrule = row
+        .rrule
+        .as_deref()
+        .map(RRuleField::from_str)
+        .transpose()
+        .map_err(|e| sqlx::Error::Decode(format!("invalid stored rrule: {e}").into()))?;
 
     Ok(Todo {
         id: row.id,
-        user_id: row.user_id,
+        user_id,
         title: row.title,
         description: row.description,
         duration: row.duration,
-        rrule: row.rrule,
+        rrule,
         label_id: row.label_id,
         created_at: row.created_at,
     })
@@ -72,20 +93,21 @@ pub async fn update(
     fields: &UpdateTodoBody,
     pool: &SqlitePool,
 ) -> Result<Option<Todo>, sqlx::Error> {
+    let rrule_str = fields.rrule.as_ref().map(|r| r.0.to_string());
     let result = sqlx::query!(
         r#"
         UPDATE todos SET
             title = COALESCE(?, title),
             description = COALESCE(?, description),
             duration = COALESCE(?, duration),
-            rrule = COALESCE(?, rrule),
+            rrule = ?,
             label_id = COALESCE(?, label_id)
         WHERE id = ? AND user_id = ?
         "#,
         fields.title,
         fields.description,
         fields.duration,
-        fields.rrule,
+        rrule_str,
         fields.label_id,
         id,
         user_id,
@@ -98,21 +120,29 @@ pub async fn update(
     }
 
     let row = sqlx::query!(
-        r#"SELECT id, user_id as "user_id: Uuid", title, description, duration, rrule, label_id, created_at as "created_at: OffsetDateTime"
+        r#"SELECT id, user_id, title, description, duration, rrule, label_id, created_at as "created_at: OffsetDateTime"
         FROM todos WHERE id = ? AND user_id = ?"#,
         id,
         user_id,
     )
     .fetch_one(pool)
     .await?;
+    let user_id = Uuid::parse_str(&row.user_id)
+        .map_err(|e| sqlx::Error::Decode(format!("invalid stored user_id: {e}").into()))?;
+    let rrule = row
+        .rrule
+        .as_deref()
+        .map(RRuleField::from_str)
+        .transpose()
+        .map_err(|e| sqlx::Error::Decode(format!("invalid stored rrule: {e}").into()))?;
 
     Ok(Some(Todo {
         id: row.id,
-        user_id: row.user_id,
+        user_id,
         title: row.title,
         description: row.description,
         duration: row.duration,
-        rrule: row.rrule,
+        rrule,
         label_id: row.label_id,
         created_at: row.created_at,
     }))

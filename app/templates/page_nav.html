@@ -1,0 +1,13 @@
+<nav class="mb-8 rounded-3xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm backdrop-blur">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Task Manager</p>
+      <h2 class="mt-1 text-sm font-medium text-slate-900">Workspace</h2>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <a href="/" class="rounded-full px-4 py-2 text-sm font-medium transition {% if active_page == "todos" %}bg-slate-900 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Todos</a>
+      <a href="/labels" class="rounded-full px-4 py-2 text-sm font-medium transition {% if active_page == "labels" %}bg-slate-900 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Labels</a>
+      <a href="/history" class="rounded-full px-4 py-2 text-sm font-medium transition bg-slate-100 text-slate-500 hover:bg-slate-200">History</a>
+    </div>
+  </div>
+</nav>

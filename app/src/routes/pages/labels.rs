@@ -16,6 +16,7 @@ use sqlx::SqlitePool;
 #[template(path = "labels.html")]
 struct LabelsPage {
     labels: Vec<Label>,
+    active_page: &'static str,
 }
 
 #[get(path = "/labels")]
@@ -27,7 +28,10 @@ pub async fn labels_page(
         .await
         .map_err(|e| LabelsPageError::UnexpectedError(e.into()))?;
 
-    let html = LabelsPage { labels }
+    let html = LabelsPage {
+        labels,
+        active_page: "labels",
+    }
         .render()
         .expect("template render failed");
     Ok(html_response(html))

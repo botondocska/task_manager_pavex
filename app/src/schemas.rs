@@ -1,4 +1,5 @@
 //! Typed schemas shared across routes.
+use crate::rrule_input::RRuleField;
 use secrecy::{ExposeSecret, Secret};
 use time::OffsetDateTime;
 
@@ -60,14 +61,18 @@ pub struct Todo {
     pub id: i64,
     pub user_id: uuid::Uuid,
     pub label_id: Option<i64>,
-    /// Duration in minutes.
     pub duration: Option<i64>,
-    /// RRULE string (RFC 5545), if this todo recurs. `None` for one-off todos.
-    pub rrule: Option<String>,
+    pub rrule: Option<RRuleField>,
     pub title: String,
     pub description: Option<String>,
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
+}
+
+impl Todo {
+    pub fn has_label(&self, label_id: &i64) -> bool {
+        self.label_id.as_ref() == Some(label_id)
+    }
 }
 
 #[derive(serde::Deserialize)]
@@ -75,7 +80,8 @@ pub struct CreateTodoBody {
     pub title: String,
     pub description: Option<String>,
     pub duration: Option<i64>,
-    pub rrule: Option<String>,
+
+    pub rrule: Option<RRuleField>,
     pub label_id: Option<i64>,
 }
 
@@ -85,7 +91,7 @@ pub struct UpdateTodoBody {
     pub title: Option<String>,
     pub description: Option<String>,
     pub duration: Option<i64>,
-    pub rrule: Option<String>,
+    pub rrule: Option<RRuleField>,
     pub label_id: Option<i64>,
 }
 

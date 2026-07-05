@@ -39,6 +39,8 @@ askama = "0.16.0"
 pavex_session_sqlx = { version = "0.2.10", features = ["sqlite"] }
 pavex_session = "0.2.10"
 time = { version = "0.3.53", features = ["serde-well-known"] }
+chrono = { version = "0.4.45", features = ["serde"] }
+rrule = "0.14.0"
 
 [dev-dependencies]
 jwt-simple = "0.11"

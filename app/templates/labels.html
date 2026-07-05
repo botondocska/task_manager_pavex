@@ -1,22 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Labels{% endblock %}
 {% block content %}
-<div class="max-w-2xl mx-auto py-10 px-4">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">Labels</h1>
+<div class="max-w-4xl mx-auto px-4 py-6 sm:py-10">
+  {% include "page_nav.html" %}
+
+  <div class="mb-6">
+    <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Labels</h1>
+    <p class="mt-1 text-sm text-slate-600">Organize tasks by color and name.</p>
+  </div>
 
   <form hx-post="/labels" hx-target="#label-list" hx-swap="beforeend"
-        class="flex gap-2 mb-6">
+        class="mb-6 flex gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
     <input name="name" type="text" placeholder="Name" required
-           class="flex-1 border border-gray-300 rounded px-3 py-2">
+           class="flex-1 rounded-xl border border-slate-200 px-3 py-2 outline-none ring-0 focus:border-slate-400">
     <input name="color" type="color" value="#3b82f6"
-           class="w-14 h-10 border border-gray-300 rounded">
+           class="h-10 w-14 rounded-xl border border-slate-200 bg-white">
     <button type="submit"
-            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700">
       Add
     </button>
   </form>
 
-  <ul id="label-list" class="space-y-2">
+  <ul id="label-list" class="space-y-3">
     {% for label in labels %}
       {% include "label_row.html" %}
     {% endfor %}
