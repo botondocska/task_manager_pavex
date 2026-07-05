@@ -122,7 +122,11 @@ pub fn parse_rrule_string(s: &str) -> Result<RRuleInput, anyhow::Error> {
 
     let (end_type, count, until) = match (rule.get_count(), rule.get_until()) {
         (Some(c), _) => ("count".to_string(), Some(c), None),
-        (None, Some(u)) => ("until".to_string(), None, Some(u.format("%Y-%m-%dT%H:%M").to_string())),
+        (None, Some(u)) => (
+            "until".to_string(),
+            None,
+            Some(u.format("%Y-%m-%dT%H:%M").to_string()),
+        ),
         (None, None) => ("never".to_string(), None, None),
     };
 

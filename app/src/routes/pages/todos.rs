@@ -201,8 +201,8 @@ async fn render_todos_page(
         labels,
         active_page,
     }
-        .render()
-        .expect("template render failed");
+    .render()
+    .expect("template render failed");
     Ok(html_response(html))
 }
 

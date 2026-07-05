@@ -32,8 +32,8 @@ pub async fn labels_page(
         labels,
         active_page: "labels",
     }
-        .render()
-        .expect("template render failed");
+    .render()
+    .expect("template render failed");
     Ok(html_response(html))
 }
 
