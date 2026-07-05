@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT id, user_id as \"user_id: Uuid\", title, description, duration, rrule, label_id, created_at as \"created_at: OffsetDateTime\"\n        FROM todos WHERE id = ? AND user_id = ?",
+  "query": "SELECT id, user_id, title, description, duration, rrule, label_id, created_at as \"created_at: OffsetDateTime\"\n        FROM todos WHERE id = ?",
   "describe": {
     "columns": [
       {
@@ -9,7 +9,7 @@
         "type_info": "Integer"
       },
       {
-        "name": "user_id: Uuid",
+        "name": "user_id",
         "ordinal": 1,
         "type_info": "Text"
       },
@@ -45,7 +45,7 @@
       }
     ],
     "parameters": {
-      "Right": 2
+      "Right": 1
     },
     "nullable": [
       false,
@@ -58,5 +58,5 @@
       false
     ]
   },
-  "hash": "c7f739ddf997b64e1f7557db3206f44ffda531730775096de6bb7ad7186afb07"
+  "hash": "cc3ab718673b3cac2504c6f0520e541a9263b8ac61084c9793533dc19d799af7"
 }

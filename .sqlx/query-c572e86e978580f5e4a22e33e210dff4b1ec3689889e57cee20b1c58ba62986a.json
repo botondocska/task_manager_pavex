@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE todos SET\n            title = COALESCE(?, title),\n            description = COALESCE(?, description),\n            duration = COALESCE(?, duration),\n            rrule = ?,\n            label_id = COALESCE(?, label_id)\n        WHERE id = ? AND user_id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "c572e86e978580f5e4a22e33e210dff4b1ec3689889e57cee20b1c58ba62986a"
+}
