@@ -71,20 +71,6 @@ pub async fn signup_submit(
     }
 }
 
-fn render_success(username: String) -> Response {
-    let html = SignupResult {
-        success: true,
-        username,
-        error_message: String::new(),
-    }
-    .render()
-    .expect("render failed");
-    Response::ok().set_typed_body(html).insert_header(
-        pavex::http::header::CONTENT_TYPE,
-        HeaderValue::from_static("text/html; charset=utf-8"),
-    )
-}
-
 fn render_error(msg: String) -> Response {
     let html = SignupResult {
         success: false,

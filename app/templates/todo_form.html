@@ -1,6 +1,6 @@
 <form hx-post="/todos" hx-target="#todo-list" hx-swap="beforeend"
       hx-on::after-request="if(event.detail.successful) { this.reset(); document.getElementById('add-todo-dialog').close(); }"
-      class="group/form space-y-4">
+      class="group/form space-y-3">
   <div>
     <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
     <input name="title" type="text" required
