@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO todo_history (user_id, todo_id, occurrence_date, completed)\n        VALUES (?, ?, ?, ?)\n        ON CONFLICT(todo_id, occurrence_date) DO UPDATE SET completed = excluded.completed\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "c8d51730afa0c07f481ff1506bef58528638de3a9461bfae48dcfc60e2941860"
+}

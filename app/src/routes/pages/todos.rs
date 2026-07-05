@@ -23,6 +23,7 @@ pub struct TodoForm {
     pub description: Option<String>,
     pub duration: Option<i64>,
     pub label_id: Option<i64>,
+    pub completed: Option<bool>,
     pub repeat: Option<String>,
     pub dt_start: Option<String>,
     pub freq: Option<String>,
@@ -228,6 +229,7 @@ pub async fn create_todo_page(
         duration: form.duration,
         rrule,
         label_id: form.label_id,
+        completed: form.completed,
     };
 
     let todo = todos_repo::create(&user_id, &create_body, pool)
@@ -314,6 +316,7 @@ pub async fn update_todo_page(
         duration: form.duration,
         rrule,
         label_id: form.label_id,
+        completed: form.completed,
     };
 
     let todo = todos_repo::update(&user_id, id, &update_body, pool)

@@ -32,7 +32,10 @@
         </select>
       </div>
     </div>
-
+    <label class="flex items-center gap-2 text-sm text-gray-700">
+      <input type="checkbox" name="completed" value="true" {% if todo.completed %}checked{% endif %}>
+      Completed
+    </label>
     <label class="flex items-center gap-2 text-sm text-gray-700">
       <input type="checkbox" name="repeat" value="on" {% if todo.rrule.is_some() %}checked{% endif %}>
       Repeat this todo

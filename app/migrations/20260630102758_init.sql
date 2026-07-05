@@ -25,11 +25,16 @@ CREATE TABLE IF NOT EXISTS todos (
     rrule TEXT CHECK(rrule IS NULL OR length(rrule) <= 2048),
     title TEXT NOT NULL CHECK(length(title) <= 255),
     description TEXT CHECK(description IS NULL OR length(description) <= 2048),
+    completed INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 ) STRICT;
 
 CREATE TABLE IF NOT EXISTS todo_history (
     id INTEGER PRIMARY KEY NOT NULL,
-    completed_todo_id INTEGER NOT NULL REFERENCES todos(id),
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    todo_id INTEGER REFERENCES todos(id) ON DELETE SET NULL,
+    occurrence_date TEXT NOT NULL,
+    completed INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    UNIQUE(todo_id, occurrence_date)
 ) STRICT;

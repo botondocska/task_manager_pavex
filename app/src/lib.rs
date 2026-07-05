@@ -9,5 +9,7 @@ pub mod rrule_input;
 pub mod schemas;
 pub mod session_auth;
 pub mod telemetry;
+pub mod todo_history_job;
 
 pub use blueprint::blueprint;
+pub use todo_history_job::occurs_on;

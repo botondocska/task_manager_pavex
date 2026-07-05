@@ -65,6 +65,7 @@ pub struct Todo {
     pub rrule: Option<RRuleField>,
     pub title: String,
     pub description: Option<String>,
+    pub completed: bool,
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
 }
@@ -80,9 +81,9 @@ pub struct CreateTodoBody {
     pub title: String,
     pub description: Option<String>,
     pub duration: Option<i64>,
-
     pub rrule: Option<RRuleField>,
     pub label_id: Option<i64>,
+    pub completed: Option<bool>,
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -93,13 +94,17 @@ pub struct UpdateTodoBody {
     pub duration: Option<i64>,
     pub rrule: Option<RRuleField>,
     pub label_id: Option<i64>,
+    pub completed: Option<bool>,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TodoHistory {
     pub id: i64,
-    pub completed_todo_id: i64,
+    pub user_id: uuid::Uuid,
+    pub todo_id: Option<i64>,
+    pub occurrence_date: String,
+    pub completed: bool,
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
 }
@@ -118,6 +123,7 @@ mod tests {
             rrule: None,
             title: "test".into(),
             description: None,
+            completed: false,
             created_at: OffsetDateTime::now_utc(),
         };
         let json = serde_json::to_string(&t).expect("should serialize");
