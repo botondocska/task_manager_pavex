@@ -1,28 +1,28 @@
-<li id="todo-{{ todo.id }}" class="bg-white border border-gray-200 rounded px-4 py-3">
+<li id="todo-{{ todo.id }}" class="bg-base-100 border border-base-300 rounded-lg px-4 py-3">
   <form hx-put="/todos/{{ todo.id }}" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML"
         class="group/form space-y-3">
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+      <label class="block text-sm font-medium mb-1">Title</label>
       <input name="title" type="text" value="{{ todo.title }}" required
-             class="w-full border border-gray-300 rounded px-3 py-2">
+             class="input input-bordered w-full">
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-      <textarea name="description" class="w-full border border-gray-300 rounded px-3 py-2">{% if let Some(desc) = todo.description %}{{ desc }}{% endif %}</textarea>
+      <label class="block text-sm font-medium mb-1">Description</label>
+      <textarea name="description" class="textarea textarea-bordered w-full">{% if let Some(desc) = todo.description %}{{ desc }}{% endif %}</textarea>
     </div>
 
     <div class="flex gap-3">
       <div class="flex-1">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Duration (min)</label>
+        <label class="block text-sm font-medium mb-1">Duration (min)</label>
         <input name="duration" type="number"
                value="{% if let Some(d) = todo.duration %}{{ d }}{% endif %}"
-               class="w-full border border-gray-300 rounded px-3 py-2">
+               class="input input-bordered w-full">
       </div>
       <div class="flex-1">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Label</label>
-        <select name="label_id" class="w-full border border-gray-300 rounded px-3 py-2">
+        <label class="block text-sm font-medium mb-1">Label</label>
+        <select name="label_id" class="select select-bordered w-full">
           <option value="">No label</option>
           {% for label in labels %}
             <option value="{{ label.id }}" {% if todo.has_label(&label.id) %}selected{% endif %}>
@@ -32,51 +32,51 @@
         </select>
       </div>
     </div>
-    <label class="flex items-center gap-2 text-sm text-gray-700">
-      <input type="checkbox" name="completed" value="true" {% if todo.completed %}checked{% endif %}>
+    <label class="flex items-center gap-2 text-sm">
+      <input type="checkbox" name="completed" value="true" {% if todo.completed %}checked{% endif %} class="checkbox checkbox-sm">
       Completed
     </label>
-    <label class="flex items-center gap-2 text-sm text-gray-700">
-      <input type="checkbox" name="repeat" value="on" {% if todo.rrule.is_some() %}checked{% endif %}>
+    <label class="flex items-center gap-2 text-sm">
+      <input type="checkbox" name="repeat" value="on" {% if todo.rrule.is_some() %}checked{% endif %} class="checkbox checkbox-sm">
       Repeat this todo
     </label>
 
-    <div class="hidden group-has-[input[name=repeat]:checked]/form:block space-y-3 border-t pt-4">
+    <div class="hidden group-has-[input[name=repeat]:checked]/form:block space-y-3 border-t border-base-300 pt-4">
       <div class="group/rrule space-y-3">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Starts</label>
+          <label class="block text-sm font-medium mb-1">Starts</label>
           <input name="dt_start" type="datetime-local"
                  value="{% if let Some(r) = rrule_raw %}{{ r.dt_start }}{% endif %}"
-                 class="w-full border border-gray-300 rounded px-3 py-2">
+                 class="input input-bordered w-full">
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+          <label class="block text-sm font-medium mb-1">Frequency</label>
           <div class="flex gap-3 text-sm">
-            <label><input type="radio" name="freq" value="daily"
+            <label class="flex items-center gap-1"><input type="radio" name="freq" value="daily" class="radio radio-sm"
               {% if let Some(r) = rrule_raw %}{% if r.freq == "daily" %}checked{% endif %}{% else %}checked{% endif %}> Daily</label>
-            <label><input type="radio" name="freq" value="weekly"
+            <label class="flex items-center gap-1"><input type="radio" name="freq" value="weekly" class="radio radio-sm"
               {% if let Some(r) = rrule_raw %}{% if r.freq == "weekly" %}checked{% endif %}{% endif %}> Weekly</label>
-            <label><input type="radio" name="freq" value="monthly"
+            <label class="flex items-center gap-1"><input type="radio" name="freq" value="monthly" class="radio radio-sm"
               {% if let Some(r) = rrule_raw %}{% if r.freq == "monthly" %}checked{% endif %}{% endif %}> Monthly</label>
-            <label><input type="radio" name="freq" value="yearly"
+            <label class="flex items-center gap-1"><input type="radio" name="freq" value="yearly" class="radio radio-sm"
               {% if let Some(r) = rrule_raw %}{% if r.freq == "yearly" %}checked{% endif %}{% endif %}> Yearly</label>
           </div>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Every N</label>
+          <label class="block text-sm font-medium mb-1">Every N</label>
           <input name="interval" type="number" min="1"
                  value="{% if let Some(r) = rrule_raw %}{{ r.interval.unwrap_or(1) }}{% else %}1{% endif %}"
-                 class="w-full border border-gray-300 rounded px-3 py-2">
+                 class="input input-bordered w-full">
         </div>
 
         <div class="hidden group-has-[input[name=freq][value=weekly]:checked]/rrule:block">
-          <label class="block text-sm font-medium text-gray-700 mb-1">On days</label>
+          <label class="block text-sm font-medium mb-1">On days</label>
           <div class="flex gap-2 flex-wrap">
             {% for (label, value) in [("Mon","mon"), ("Tue","tue"), ("Wed","wed"), ("Thu","thu"), ("Fri","fri"), ("Sat","sat"), ("Sun","sun")] %}
-              <label class="text-xs">
-                <input type="checkbox" name="by_weekday" value="{{ value }}"
+              <label class="text-xs flex items-center gap-1">
+                <input type="checkbox" name="by_weekday" value="{{ value }}" class="checkbox checkbox-xs"
                   {% if let Some(r) = rrule_raw %}{% if let Some(days) = r.by_weekday %}{% if days.contains(&value.to_string()) %}checked{% endif %}{% endif %}{% endif %}>
                 {{ label }}
               </label>
@@ -85,26 +85,26 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Ends</label>
+          <label class="block text-sm font-medium mb-1">Ends</label>
           <div class="space-y-2 text-sm [&:has(input[value=count]:checked)_.count-field]:opacity-100 [&:has(input[value=until]:checked)_.until-field]:opacity-100">
             <label class="flex items-center gap-2">
-              <input type="radio" name="end_type" value="never"
+              <input type="radio" name="end_type" value="never" class="radio radio-sm"
                 {% if let Some(r) = rrule_raw %}{% if r.end_type == "never" %}checked{% endif %}{% else %}checked{% endif %}> Never
             </label>
             <label class="flex items-center gap-2">
-              <input type="radio" name="end_type" value="count"
+              <input type="radio" name="end_type" value="count" class="radio radio-sm"
                 {% if let Some(r) = rrule_raw %}{% if r.end_type == "count" %}checked{% endif %}{% endif %}> After
               <input name="count" type="number" placeholder="N"
                      value="{% if let Some(r) = rrule_raw %}{% if let Some(c) = r.count %}{{ c }}{% endif %}{% endif %}"
-                     class="count-field opacity-40 w-20 border border-gray-300 rounded px-2 py-1">
+                     class="count-field opacity-40 input input-bordered input-sm w-20">
               occurrences
             </label>
             <label class="flex items-center gap-2">
-              <input type="radio" name="end_type" value="until"
+              <input type="radio" name="end_type" value="until" class="radio radio-sm"
                 {% if let Some(r) = rrule_raw %}{% if r.end_type == "until" %}checked{% endif %}{% endif %}> Until
               <input name="until" type="datetime-local"
                      value="{% if let Some(r) = rrule_raw %}{% if let Some(u) = r.until %}{{ u }}{% endif %}{% endif %}"
-                     class="until-field opacity-40 border border-gray-300 rounded px-2 py-1">
+                     class="until-field opacity-40 input input-bordered input-sm">
             </label>
           </div>
         </div>
@@ -112,9 +112,32 @@
     </div>
 
     <div class="flex gap-2">
-      <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Save</button>
+      <button type="submit" class="btn btn-primary flex-1">Save</button>
       <button type="button" hx-get="/todos/{{ todo.id }}" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML"
-              class="flex-1 bg-gray-200 py-2 rounded hover:bg-gray-300">Cancel</button>
+              class="btn btn-ghost flex-1">Cancel</button>
     </div>
+
+    <script>
+      (function(form) {
+        function sync() {
+          const repeat = form.querySelector('[name=repeat]').checked;
+          const dtStart = form.querySelector('[name=dt_start]');
+          dtStart.required = repeat;
+          dtStart.disabled = !repeat;
+
+          const endType = form.querySelector('[name=end_type]:checked')?.value;
+          const count = form.querySelector('[name=count]');
+          const until = form.querySelector('[name=until]');
+
+          count.required = repeat && endType === 'count';
+          count.disabled = !(repeat && endType === 'count');
+
+          until.required = repeat && endType === 'until';
+          until.disabled = !(repeat && endType === 'until');
+        }
+        form.addEventListener('change', sync);
+        sync();
+      })(document.currentScript.closest('form'));
+    </script>
   </form>
 </li>

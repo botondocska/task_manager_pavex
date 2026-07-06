@@ -1,5 +1,5 @@
 use crate::{
-    routes::api::labels::repo,
+    routes::{api::labels::repo, pages::nav::NAV_ITEMS},
     schemas::{CreateLabelBody, Label, UpdateLabelBody},
     session_auth::SessionUserId,
 };
@@ -17,6 +17,7 @@ use sqlx::SqlitePool;
 struct LabelsPage {
     labels: Vec<Label>,
     active_page: &'static str,
+    nav_items: &'static [crate::routes::pages::nav::NavItem],
 }
 
 #[get(path = "/labels")]
@@ -31,6 +32,7 @@ pub async fn labels_page(
     let html = LabelsPage {
         labels,
         active_page: "labels",
+        nav_items: NAV_ITEMS,
     }
     .render()
     .expect("template render failed");

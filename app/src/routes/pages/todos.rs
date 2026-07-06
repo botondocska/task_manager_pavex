@@ -1,5 +1,8 @@
 use crate::{
-    routes::api::{labels::repo as labels_repo, todos::repo as todos_repo},
+    routes::{
+        api::{labels::repo as labels_repo, todos::repo as todos_repo},
+        pages::nav::NAV_ITEMS,
+    },
     rrule_input::{RRuleField, RRuleInput, build_rrule_set},
     schemas::{CreateTodoBody, Label, Todo, UpdateTodoBody},
     session_auth::SessionUserId,
@@ -78,6 +81,7 @@ struct TodosPage {
     todos: Vec<Todo>,
     labels: Vec<Label>,
     active_page: &'static str,
+    nav_items: &'static [crate::routes::pages::nav::NavItem],
 }
 
 #[derive(Template)]
@@ -201,6 +205,7 @@ async fn render_todos_page(
         todos,
         labels,
         active_page,
+        nav_items: NAV_ITEMS,
     }
     .render()
     .expect("template render failed");

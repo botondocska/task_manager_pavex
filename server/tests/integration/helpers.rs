@@ -202,3 +202,167 @@ impl TestApi {
             .expect("Failed to execute request.")
     }
 }
+
+impl TestApi {
+    /// Signs up and returns the session cookie header value, since reqwest's
+    /// automatic cookie jar has proven unreliable in this test setup —
+    /// every subsequent request must attach this manually.
+    pub async fn signup_session(&self, username: &str, email: &str, password: &str) -> String {
+        let response = self
+            .api_client
+            .post(&format!("{}/signup", &self.api_address))
+            .form(&[
+                ("username", username),
+                ("email", email),
+                ("password", password),
+            ])
+            .send()
+            .await
+            .expect("Failed to execute signup request.");
+
+        assert_eq!(
+            response.status().as_u16(),
+            200,
+            "signup failed: {}",
+            response.text().await.unwrap_or_default()
+        );
+
+        let cookie_header = response
+            .headers()
+            .get("set-cookie")
+            .expect("no set-cookie header on signup response")
+            .to_str()
+            .unwrap()
+            .to_string();
+        cookie_header.split(';').next().unwrap().to_string()
+    }
+
+    pub async fn post_todo_page<Body>(&self, cookie: &str, body: &Body) -> reqwest::Response
+    where
+        Body: serde::Serialize,
+    {
+        self.api_client
+            .post(&format!("{}/todos", &self.api_address))
+            .header("Cookie", cookie)
+            .form(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn put_todo_page<Body>(&self, cookie: &str, id: i64, body: &Body) -> reqwest::Response
+    where
+        Body: serde::Serialize,
+    {
+        self.api_client
+            .put(&format!("{}/todos/{id}", &self.api_address))
+            .header("Cookie", cookie)
+            .form(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn delete_todo_page(&self, cookie: &str, id: i64) -> reqwest::Response {
+        self.api_client
+            .delete(&format!("{}/todos/{id}", &self.api_address))
+            .header("Cookie", cookie)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn get_todo_page(&self, cookie: &str, id: i64) -> reqwest::Response {
+        self.api_client
+            .get(&format!("{}/todos/{id}", &self.api_address))
+            .header("Cookie", cookie)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn get_todos_page(&self, cookie: &str) -> reqwest::Response {
+        self.api_client
+            .get(&format!("{}/todos", &self.api_address))
+            .header("Cookie", cookie)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+}
+
+#[tokio::test]
+async fn debug_cookie_flow() {
+    let api = TestApi::spawn().await;
+    let signup_resp = api
+        .api_client
+        .post(&format!("{}/signup", api.api_address))
+        .form(&[
+            ("username", "alice"),
+            ("email", "alice@example.com"),
+            ("password", "hunter22"),
+        ])
+        .send()
+        .await
+        .unwrap();
+
+    println!("signup status: {}", signup_resp.status());
+    println!(
+        "set-cookie header: {:?}",
+        signup_resp.headers().get("set-cookie")
+    );
+
+    let todos_resp = api
+        .api_client
+        .get(&format!("{}/todos", api.api_address))
+        .send()
+        .await
+        .unwrap();
+
+    println!("todos status: {}", todos_resp.status());
+    println!("request cookie sent: checking via a raw fetch is hard; redirect location below");
+    println!(
+        "location header: {:?}",
+        todos_resp.headers().get("location")
+    );
+}
+
+#[tokio::test]
+async fn debug_cookie_flow_manual() {
+    let api = TestApi::spawn().await;
+    let signup_resp = api
+        .api_client
+        .post(&format!("{}/signup", api.api_address))
+        .form(&[
+            ("username", "alice"),
+            ("email", "alice@example.com"),
+            ("password", "hunter22"),
+        ])
+        .send()
+        .await
+        .unwrap();
+
+    let cookie_header = signup_resp
+        .headers()
+        .get("set-cookie")
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
+    // Extract just "session=VALUE" (before the first ';').
+    let cookie_value = cookie_header.split(';').next().unwrap();
+
+    let todos_resp = api
+        .api_client
+        .get(&format!("{}/todos", api.api_address))
+        .header("Cookie", cookie_value)
+        .send()
+        .await
+        .unwrap();
+
+    println!("todos status (manual cookie): {}", todos_resp.status());
+    println!(
+        "location header: {:?}",
+        todos_resp.headers().get("location")
+    );
+}

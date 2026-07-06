@@ -2,6 +2,16 @@ use chrono::{DateTime, Weekday};
 use rrule::{Frequency, NWeekday, RRule, RRuleSet, Tz};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+/// Pure decision: does `rrule` (if any) produce an occurrence on `day`?
+/// `None` (a one-off todo) is always due. No I/O, no logging — just data in,
+/// data out, fully unit-testable.
+pub fn is_due_on(rrule: Option<&RRuleField>, day: time::Date) -> Result<bool, anyhow::Error> {
+    match rrule {
+        Some(r) => crate::todo_history_job::occurs_on(&r.0, day),
+        None => Ok(true),
+    }
+}
+
 fn parse_dt(s: &str) -> Result<DateTime<Tz>, anyhow::Error> {
     // datetime-local inputs come as "YYYY-MM-DDTHH:MM" (no seconds, no offset).
     // Normalize before parsing.
@@ -184,5 +194,77 @@ impl Serialize for RRuleField {
         S: Serializer,
     {
         serializer.serialize_str(&self.0.to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn date(y: i32, m: u8, d: u8) -> time::Date {
+        time::Date::from_calendar_date(y, time::Month::try_from(m).unwrap(), d).unwrap()
+    }
+
+    #[test]
+    fn one_off_todo_always_due() {
+        assert!(is_due_on(None, date(2026, 7, 10)).unwrap());
+        assert!(is_due_on(None, date(2026, 1, 1)).unwrap());
+    }
+
+    #[test]
+    fn weekly_monday_is_due_on_monday_not_tuesday() {
+        let raw = RRuleInput {
+            dt_start: "2026-07-06T09:00".to_string(), // a Monday
+            freq: "weekly".to_string(),
+            interval: None,
+            by_weekday: Some(vec!["mon".to_string()]),
+            end_type: "never".to_string(),
+            count: None,
+            until: None,
+        };
+        let set = build_rrule_set(raw).unwrap();
+        let field = RRuleField(set);
+
+        // 2026-07-06 is a Monday, 2026-07-07 is a Tuesday.
+        assert!(is_due_on(Some(&field), date(2026, 7, 6)).unwrap());
+        assert!(!is_due_on(Some(&field), date(2026, 7, 7)).unwrap());
+    }
+
+    #[test]
+    fn daily_is_due_every_day() {
+        let raw = RRuleInput {
+            dt_start: "2026-07-01T09:00".to_string(),
+            freq: "daily".to_string(),
+            interval: None,
+            by_weekday: None,
+            end_type: "never".to_string(),
+            count: None,
+            until: None,
+        };
+        let set = build_rrule_set(raw).unwrap();
+        let field = RRuleField(set);
+
+        assert!(is_due_on(Some(&field), date(2026, 7, 1)).unwrap());
+        assert!(is_due_on(Some(&field), date(2026, 7, 15)).unwrap());
+    }
+
+    #[test]
+    fn rrule_round_trips_through_build_and_parse() {
+        let raw = RRuleInput {
+            dt_start: "2026-07-10T09:00".to_string(),
+            freq: "weekly".to_string(),
+            interval: Some(2),
+            by_weekday: Some(vec!["mon".to_string(), "wed".to_string()]),
+            end_type: "count".to_string(),
+            count: Some(5),
+            until: None,
+        };
+        let set = build_rrule_set(raw).unwrap();
+        let parsed_back = parse_rrule_string(&set.to_string()).unwrap();
+
+        assert_eq!(parsed_back.freq, "weekly");
+        assert_eq!(parsed_back.interval, Some(2));
+        assert_eq!(parsed_back.end_type, "count");
+        assert_eq!(parsed_back.count, Some(5));
     }
 }

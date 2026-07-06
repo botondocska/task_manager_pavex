@@ -24,6 +24,7 @@ FROM debian:bookworm-slim AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/release/server bin
 COPY configuration configuration
+RUN mkdir -p /app/data
 ENV PX_PROFILE=production
 # Enable backtraces to simplify debugging
 # production panics.

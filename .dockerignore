@@ -6,3 +6,4 @@ Dockerfile
 server/tests/
 server/configuration/dev.yml
 target/
+entrypoint.sh

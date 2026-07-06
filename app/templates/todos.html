@@ -1,31 +1,56 @@
-{% extends "base.html" %}
+{% extends "nav.html" %}
 {% block title %}Todos{% endblock %}
-{% block content %}
-<div class="max-w-4xl mx-auto px-4 py-6 sm:py-10">
-  {% include "page_nav.html" %}
+{% block page_content %}
 
-  <div class="mb-6 flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-gray-800">Todos</h1>
-    <button onclick="document.getElementById('add-todo-dialog').showModal()"
-            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-      Add Todo
-    </button>
-  </div>
+<div class="flex flex-col lg:flex-row gap-6">
 
-  <dialog id="add-todo-dialog" class="rounded-lg shadow-xl p-0 max-w-md w-full backdrop:bg-black/40">
-    <div class="p-6 bg-white">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-gray-800">New Todo</h2>
-        <button onclick="document.getElementById('add-todo-dialog').close()">&times;</button>
-      </div>
-      {% include "todo_form.html" %}
+  <section class="flex-1 lg:basis-2/3">
+    <div class="mb-6 flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Todos</h1>
+      <button onclick="document.getElementById('add-todo-dialog').showModal()"
+              class="btn btn-primary">
+        Add Todo
+      </button>
     </div>
-  </dialog>
 
-  <ul id="todo-list" class="space-y-2">
-    {% for todo in todos %}
-      {% include "todo_row.html" %}
-    {% endfor %}
-  </ul>
+    <dialog id="add-todo-dialog" class="modal">
+      <div class="modal-box">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold">New Todo</h2>
+          <button onclick="document.getElementById('add-todo-dialog').close()" class="btn btn-sm btn-circle btn-ghost">&times;</button>
+        </div>
+        {% include "todo_form.html" %}
+      </div>
+      <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <ul id="todo-list" class="space-y-2">
+      {% for todo in todos %}
+        {% include "todo_row.html" %}
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="lg:basis-1/3 lg:border-l lg:border-base-300 lg:pl-6">
+    <h2 class="mb-6 text-xl font-bold">Labels</h2>
+
+    <form hx-post="/labels" hx-target="#label-list" hx-swap="beforeend"
+          class="mb-6 flex gap-2">
+      <input name="name" type="text" placeholder="Name" required
+             class="input input-bordered flex-1">
+      <input name="color" type="color" value="#3b82f6"
+             class="h-10 w-10 rounded-full border border-base-300 bg-base-100 p-0">
+      <button type="submit" class="btn btn-primary">
+        Add
+      </button>
+    </form>
+
+    <ul id="label-list" class="space-y-2">
+      {% for label in labels %}
+        {% include "label_row.html" %}
+      {% endfor %}
+    </ul>
+  </section>
+
 </div>
 {% endblock %}

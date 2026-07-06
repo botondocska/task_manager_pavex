@@ -96,40 +96,6 @@ pub async fn create(
     Ok(todo)
 }
 
-/// Inserts a `todo_history` row for `todo` if it's due today and one
-/// doesn't already exist. Errors are logged, not propagated — a history
-/// bookkeeping failure shouldn't block todo creation/updates.
-async fn record_today_if_due(user_id_str: &str, todo: &Todo, pool: &SqlitePool) {
-    let today_date = time::OffsetDateTime::now_utc().date();
-
-    let is_due_today = match &todo.rrule {
-        Some(r) => crate::todo_history_job::occurs_on(&r.0, today_date).unwrap_or(false),
-        None => true,
-    };
-
-    if !is_due_today {
-        return;
-    }
-
-    let today = today_date.to_string();
-    if let Err(e) = sqlx::query!(
-        r#"
-        INSERT INTO todo_history (user_id, todo_id, occurrence_date, completed)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(todo_id, occurrence_date) DO UPDATE SET completed = excluded.completed
-        "#,
-        user_id_str,
-        todo.id,
-        today,
-        todo.completed,
-    )
-    .execute(pool)
-    .await
-    {
-        tracing::error!(error = %e, todo_id = todo.id, "failed to record today's history row");
-    }
-}
-
 pub async fn update(
     user_id_str: &str,
     id: i64,
@@ -207,4 +173,38 @@ pub async fn delete(user_id: &str, id: i64, pool: &SqlitePool) -> Result<bool, s
     .await?;
 
     Ok(result.rows_affected() > 0)
+}
+
+async fn record_today_if_due(user_id_str: &str, todo: &Todo, pool: &SqlitePool) {
+    let today_date = time::OffsetDateTime::now_utc().date();
+
+    let is_due_today = match crate::rrule_input::is_due_on(todo.rrule.as_ref(), today_date) {
+        Ok(due) => due,
+        Err(e) => {
+            tracing::error!(error = %e, todo_id = todo.id, "failed to evaluate rrule due-check");
+            return;
+        }
+    };
+
+    if !is_due_today {
+        return;
+    }
+
+    let today = today_date.to_string();
+    if let Err(e) = sqlx::query!(
+        r#"
+        INSERT INTO todo_history (user_id, todo_id, occurrence_date, completed)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(todo_id, occurrence_date) DO UPDATE SET completed = excluded.completed
+        "#,
+        user_id_str,
+        todo.id,
+        today,
+        todo.completed,
+    )
+    .execute(pool)
+    .await
+    {
+        tracing::error!(error = %e, todo_id = todo.id, "failed to record today's history row");
+    }
 }
