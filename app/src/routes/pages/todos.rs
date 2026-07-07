@@ -1,3 +1,4 @@
+use crate::session_theme::Theme;
 use crate::{
     routes::{
         api::{labels::repo as labels_repo, todos::repo as todos_repo},
@@ -7,7 +8,6 @@ use crate::{
     schemas::{CreateTodoBody, Label, Todo, UpdateTodoBody},
     session_auth::SessionUserId,
 };
-use crate::session_theme::Theme;
 use askama::Template;
 use htmx_macro::{hx_delete, hx_get, hx_post, hx_put};
 use pavex::{
@@ -186,7 +186,7 @@ pub async fn get_todo_page(
 pub async fn todos_page(
     user: &SessionUserId,
     pool: &SqlitePool,
-    theme: &Theme
+    theme: &Theme,
 ) -> Result<Response, TodosPageError> {
     render_todos_page(user, pool, "todos", theme).await
 }

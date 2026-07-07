@@ -1,9 +1,9 @@
+use crate::session_theme::Theme;
 use crate::{
     routes::{api::labels::repo, pages::nav::NAV_ITEMS},
     schemas::{CreateLabelBody, Label, UpdateLabelBody},
     session_auth::SessionUserId,
 };
-use crate::session_theme::Theme;
 use askama::Template;
 use pavex::{
     Response, delete, get,
@@ -36,7 +36,7 @@ pub async fn labels_page(
         labels,
         active_page: "labels",
         nav_items: NAV_ITEMS,
-        theme: *theme
+        theme: *theme,
     }
     .render()
     .expect("template render failed");

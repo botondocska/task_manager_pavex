@@ -1,12 +1,15 @@
+use crate::session_theme::Theme;
 use crate::{
     routes::{
         api::{
             labels::repo as labels_repo,
             todo_history::{self, DurationPeriod, LabelFilter, Period, PeriodCount},
-        }, pages::{nav::NAV_ITEMS},
-    }, schemas::Label, session_auth::SessionUserId,
+        },
+        pages::nav::NAV_ITEMS,
+    },
+    schemas::Label,
+    session_auth::SessionUserId,
 };
-use crate::session_theme::Theme;
 use askama::Template;
 use htmx_macro::hx_get;
 use pavex::{Response, http::HeaderValue};
@@ -203,7 +206,7 @@ pub async fn history_page(
     query: pavex::request::query::QueryParams<HistoryQuery>,
     user: &SessionUserId,
     pool: &SqlitePool,
-    theme: &Theme
+    theme: &Theme,
 ) -> Result<Response, HistoryPageError> {
     let q = query.0;
     let user_id = user.0.to_string();
@@ -284,7 +287,7 @@ pub async fn history_page(
         chart_height: CHART_HEIGHT,
         active_page: "history",
         nav_items: NAV_ITEMS,
-        theme: *theme
+        theme: *theme,
     }
     .render()
     .expect("render failed");

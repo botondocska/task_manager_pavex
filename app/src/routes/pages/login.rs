@@ -1,4 +1,5 @@
 use crate::routes::api::users::password::validate_credentials;
+use crate::session_theme::Theme;
 use askama::Template;
 use htmx_macro::{hx_get, hx_post};
 use pavex::{
@@ -6,7 +7,6 @@ use pavex::{
     http::{HeaderValue, header::HeaderName},
     request::body::UrlEncodedBody,
 };
-use crate::session_theme::Theme;
 use pavex_session::Session;
 use secrecy::Secret;
 use sqlx::SqlitePool;
@@ -19,7 +19,9 @@ struct LoginPage {
 
 #[hx_get(path = "/login", template = "login.html")]
 pub fn login_page(theme: Theme) -> Response {
-    let html = LoginPage { theme }.render().expect("template render failed");
+    let html = LoginPage { theme }
+        .render()
+        .expect("template render failed");
     html_response(html)
 }
 

@@ -1,4 +1,5 @@
 use crate::routes::api::users::password::compute_password_hash;
+use crate::session_theme::Theme;
 use askama::Template;
 use htmx_macro::{hx_get, hx_post};
 use pavex::{
@@ -6,7 +7,6 @@ use pavex::{
     http::{HeaderValue, header::HeaderName},
     request::body::UrlEncodedBody,
 };
-use crate::session_theme::Theme;
 use pavex_session::Session;
 use secrecy::Secret;
 use sqlx::SqlitePool;
@@ -19,7 +19,9 @@ struct SignupPage {
 
 #[hx_get(path = "/signup", template = "signup.html")]
 pub fn signup_page(theme: Theme) -> Response {
-    let html = SignupPage { theme }.render().expect("template render failed");
+    let html = SignupPage { theme }
+        .render()
+        .expect("template render failed");
     Response::ok().set_typed_body(html).insert_header(
         pavex::http::header::CONTENT_TYPE,
         HeaderValue::from_static("text/html; charset=utf-8"),

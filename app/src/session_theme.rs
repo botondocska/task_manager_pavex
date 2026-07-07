@@ -14,20 +14,19 @@ impl Theme {
         }
     }
 
-    pub fn from_str(s: &str) -> Self {
+    pub fn parse(s: &str) -> Self {
         match s {
             "nord" => Theme::Nord,
             _ => Theme::Forest,
         }
     }
 }
-
 #[pavex::methods]
 impl Theme {
     #[request_scoped]
     pub async fn extract(session: &Session<'_>) -> Self {
         match session.get::<String>("theme").await {
-            Ok(Some(raw)) => Theme::from_str(&raw),
+            Ok(Some(raw)) => Theme::parse(&raw),
             _ => Theme::Forest,
         }
     }
