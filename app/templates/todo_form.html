@@ -97,13 +97,24 @@
     Add Todo
   </button>
 
-  <script>
+<script>
     (function(form) {
+      function pad(n) { return String(n).padStart(2, '0'); }
+      function nowLocal() {
+        const d = new Date();
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
       function sync() {
         const repeat = form.querySelector('[name=repeat]').checked;
         const dtStart = form.querySelector('[name=dt_start]');
         dtStart.required = repeat;
         dtStart.disabled = !repeat;
+        if (repeat && !dtStart.value) {
+          dtStart.value = nowLocal();
+        }
+        if (!repeat) {
+          dtStart.value = '';
+        }
 
         const endType = form.querySelector('[name=end_type]:checked')?.value;
         const count = form.querySelector('[name=count]');

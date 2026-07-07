@@ -14,5 +14,5 @@ cookies:
   crypto_rules:
     - cookie_names: ["session"]
       algorithm: "encryption"
-      key: "d+RgVbC9cKJzPJgsXGv2Hht+ooJsCOEFoXTc8zbjA+TSDlhjtA/RtpAzNbY1VYz5XwR7Rap3pVE1ugVlKAJ0yA=="
+      key: "${COOKIE_ENCRYPTION_KEY}"
       fallbacks: []

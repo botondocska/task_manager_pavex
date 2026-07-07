@@ -3,98 +3,110 @@
 {% block page_content %}
   <h1 class="text-2xl font-bold mb-6">History</h1>
 
-  <form method="get" action="/history" class="bg-base-100 border border-base-300 p-6 rounded-lg shadow-md space-y-4 mb-6">
-    <div class="flex gap-3">
-      <div>
+  <form method="get" action="/history" class="bg-base-100 border border-base-300 p-4 sm:p-6 rounded-lg shadow-md space-y-4 mb-6">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <div class="flex-1 sm:flex-none">
         <label class="block text-sm font-medium mb-1">Period</label>
-        <select name="period" class="select select-bordered">
+        <select name="period" class="select select-bordered select-lg sm:select-md w-full sm:w-auto">
           <option value="day" {% if period == "day" %}selected{% endif %}>Day</option>
           <option value="month" {% if period == "month" %}selected{% endif %}>Month</option>
           <option value="year" {% if period == "year" %}selected{% endif %}>Year</option>
         </select>
       </div>
-      <div>
+      <div class="flex-1 sm:flex-none">
         <label class="block text-sm font-medium mb-1">Compare last N</label>
         <input name="count" type="number" min="1" max="60" value="{{ num_periods }}"
-               class="input input-bordered w-24">
+               class="input input-bordered input-lg sm:input-md w-full sm:w-24">
       </div>
     </div>
 
     <div>
       <label class="block text-sm font-medium mb-1">Labels</label>
-      <div class="flex gap-3 flex-wrap text-sm">
+      <div class="flex gap-3 flex-wrap text-base sm:text-sm">
         {% for label in labels %}
-          <label class="flex items-center gap-1">
-            <input type="checkbox" name="label_ids" value="{{ label.id }}" class="checkbox checkbox-sm"
+          <label class="flex items-center gap-2 py-1">
+            <input type="checkbox" name="label_ids" value="{{ label.id }}" class="checkbox checkbox-md sm:checkbox-sm"
               {% if selected_label_ids.contains(label.id) %}checked{% endif %}>
             {{ label.name }}
           </label>
         {% endfor %}
-        <label class="flex items-center gap-1">
-          <input type="checkbox" name="include_unlabeled" value="on" class="checkbox checkbox-sm"
+        <label class="flex items-center gap-2 py-1">
+          <input type="checkbox" name="include_unlabeled" value="on" class="checkbox checkbox-md sm:checkbox-sm"
             {% if include_unlabeled %}checked{% endif %}>
           No label
         </label>
       </div>
     </div>
 
-    <button type="submit" class="btn btn-primary">
+    <button type="submit" class="btn btn-primary btn-lg sm:btn-md w-full sm:w-auto">
       Apply
     </button>
   </form>
 
   <div class="flex flex-col gap-6">
 
-    <div class="bg-base-100 border border-base-300 p-6 rounded-lg shadow-md">
-      <h2 class="text-sm font-semibold opacity-70 mb-3">Completion</h2>
-      <svg viewBox="0 0 {{ chart_width }} {{ chart_height + 30.0 }}" class="w-full h-auto">
-          {% for bar in bars %}
-          <g>
-              <rect x="{{ bar.x }}" y="{{ chart_height - bar.bar_height }}"
-                  width="32" height="{{ bar.bar_height }}"
-                  fill="#3b4252" />
-              <rect x="{{ bar.x }}" y="{{ chart_height - bar.completed_height }}"
-                  width="32" height="{{ bar.completed_height }}"
-                  fill="#60a5fa" />
-              <text x="{{ bar.x + 16.0 }}" y="{{ chart_height + 15.0 }}"
-                  font-size="10" text-anchor="middle" fill="currentColor" opacity="0.6">{{ bar.label }}</text>
-              <text x="{{ bar.x + 16.0 }}" y="{{ bar.count_label_y }}"
-                  font-size="10" text-anchor="middle" fill="currentColor">{{ bar.completed }}/{{ bar.total }}</text>
-              <text x="{{ bar.x + 16.0 }}" y="{{ bar.count_label_y + 11.0 }}"
-                  font-size="9" text-anchor="middle" fill="currentColor" opacity="0.5">{{ bar.percentage }}%</text>
-          </g>
-          {% endfor %}
-          <line x1="0" y1="{{ avg_line_y }}" x2="{{ chart_width }}" y2="{{ avg_line_y }}"
-              stroke="#f87171" stroke-width="1.5" stroke-dasharray="4,3" />
-          <text x="{{ chart_width - 4.0 }}" y="{{ avg_line_y - 4.0 }}"
-              font-size="9" text-anchor="end" fill="#f87171">avg {{ avg_percentage }}%</text>
-      </svg>
+    <div class="bg-base-100 border border-base-300 p-3 sm:p-6 rounded-lg shadow-md">
+      <h2 class="text-base sm:text-sm font-semibold opacity-70 mb-3">Completion</h2>
+      <div class="overflow-x-auto" dir="rtl">
+        <div dir="ltr" class="inline-block">
+          <svg viewBox="0 0 {{ chart_width }} {{ chart_height + 30.0 }}"
+               width="{{ chart_width }}" height="{{ chart_height + 30.0 }}"
+               class="block" style="width: {{ chart_width }}px;">
+              {% for bar in bars %}
+              <g>
+                  <rect x="{{ bar.x }}" y="{{ chart_height - bar.bar_height }}"
+                      width="32" height="{{ bar.bar_height }}"
+                      fill="#3b4252" />
+                  <rect x="{{ bar.x }}" y="{{ chart_height - bar.completed_height }}"
+                      width="32" height="{{ bar.completed_height }}"
+                      fill="#60a5fa" />
+                  <text x="{{ bar.x + 16.0 }}" y="{{ chart_height + 17.0 }}"
+                      font-size="13" text-anchor="middle" fill="currentColor" opacity="0.6">{{ bar.label }}</text>
+                  <text x="{{ bar.x + 16.0 }}" y="{{ bar.count_label_y }}"
+                      font-size="13" text-anchor="middle" fill="currentColor">{{ bar.completed }}/{{ bar.total }}</text>
+                  <text x="{{ bar.x + 16.0 }}" y="{{ bar.count_label_y + 13.0 }}"
+                      font-size="12" text-anchor="middle" fill="currentColor" opacity="0.5">{{ bar.percentage }}%</text>
+              </g>
+              {% endfor %}
+              <line x1="0" y1="{{ avg_line_y }}" x2="{{ chart_width }}" y2="{{ avg_line_y }}"
+                  stroke="#f87171" stroke-width="1.5" stroke-dasharray="4,3" />
+              <text x="{{ chart_width - 4.0 }}" y="{{ avg_line_y - 4.0 }}"
+                  font-size="12" text-anchor="end" fill="#f87171">avg {{ avg_percentage }}%</text>
+          </svg>
+        </div>
+      </div>
     </div>
 
-    <div class="bg-base-100 border border-base-300 p-6 rounded-lg shadow-md">
-      <h2 class="text-sm font-semibold opacity-70 mb-3">Time spent (min)</h2>
-      <svg viewBox="0 0 {{ chart_width }} {{ chart_height + 30.0 }}" class="w-full h-auto">
-          {% for bar in duration_bars %}
-          <g>
-              <rect x="{{ bar.x }}" y="{{ chart_height - bar.bar_height }}"
-                  width="32" height="{{ bar.bar_height }}"
-                  fill="#374151" />
-              <rect x="{{ bar.x }}" y="{{ chart_height - bar.completed_height }}"
-                  width="32" height="{{ bar.completed_height }}"
-                  fill="#34d399" />
-              <text x="{{ bar.x + 16.0 }}" y="{{ chart_height + 15.0 }}"
-                  font-size="10" text-anchor="middle" fill="currentColor" opacity="0.6">{{ bar.label }}</text>
-              <text x="{{ bar.x + 16.0 }}" y="{{ bar.minutes_label_y }}"
-                  font-size="10" text-anchor="middle" fill="currentColor">{{ bar.completed_minutes }}/{{ bar.total_minutes }}</text>
-              <text x="{{ bar.x + 16.0 }}" y="{{ bar.minutes_label_y + 11.0 }}"
-                  font-size="9" text-anchor="middle" fill="currentColor" opacity="0.5">{{ bar.percentage }}%</text>
-          </g>
-          {% endfor %}
-          <line x1="0" y1="{{ duration_avg_line_y }}" x2="{{ chart_width }}" y2="{{ duration_avg_line_y }}"
-              stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,3" />
-          <text x="{{ chart_width - 4.0 }}" y="{{ duration_avg_line_y - 4.0 }}"
-              font-size="9" text-anchor="end" fill="#34d399">avg {{ avg_duration_percentage }}%</text>
-      </svg>
+    <div class="bg-base-100 border border-base-300 p-3 sm:p-6 rounded-lg shadow-md">
+      <h2 class="text-base sm:text-sm font-semibold opacity-70 mb-3">Time spent (min)</h2>
+      <div class="overflow-x-auto" dir="rtl">
+        <div dir="ltr" class="inline-block">
+          <svg viewBox="0 0 {{ chart_width }} {{ chart_height + 30.0 }}"
+               width="{{ chart_width }}" height="{{ chart_height + 30.0 }}"
+               class="block" style="width: {{ chart_width }}px;">
+              {% for bar in duration_bars %}
+              <g>
+                  <rect x="{{ bar.x }}" y="{{ chart_height - bar.bar_height }}"
+                      width="32" height="{{ bar.bar_height }}"
+                      fill="#374151" />
+                  <rect x="{{ bar.x }}" y="{{ chart_height - bar.completed_height }}"
+                      width="32" height="{{ bar.completed_height }}"
+                      fill="#34d399" />
+                  <text x="{{ bar.x + 16.0 }}" y="{{ chart_height + 17.0 }}"
+                      font-size="13" text-anchor="middle" fill="currentColor" opacity="0.6">{{ bar.label }}</text>
+                  <text x="{{ bar.x + 16.0 }}" y="{{ bar.minutes_label_y }}"
+                      font-size="13" text-anchor="middle" fill="currentColor">{{ bar.completed_minutes }}/{{ bar.total_minutes }}</text>
+                  <text x="{{ bar.x + 16.0 }}" y="{{ bar.minutes_label_y + 13.0 }}"
+                      font-size="12" text-anchor="middle" fill="currentColor" opacity="0.5">{{ bar.percentage }}%</text>
+              </g>
+              {% endfor %}
+              <line x1="0" y1="{{ duration_avg_line_y }}" x2="{{ chart_width }}" y2="{{ duration_avg_line_y }}"
+                  stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,3" />
+              <text x="{{ chart_width - 4.0 }}" y="{{ duration_avg_line_y - 4.0 }}"
+                  font-size="12" text-anchor="end" fill="#34d399">avg {{ avg_duration_percentage }}%</text>
+          </svg>
+        </div>
+      </div>
     </div>
 
   </div>

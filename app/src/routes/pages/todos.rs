@@ -337,6 +337,28 @@ pub async fn update_todo_page(
     Ok(html_response(html))
 }
 
+#[hx_put(path = "/todos/{id}/toggle")]
+pub async fn toggle_todo_page(
+    params: PathParams<TodoIdParam>,
+    user: &SessionUserId,
+    pool: &SqlitePool,
+) -> Result<Response, TodosPageError> {
+    let TodoIdParam { id } = params.0;
+    let user_id = user.0.to_string();
+
+    let todo = todos_repo::toggle_completed(&user_id, id, pool)
+        .await
+        .map_err(|e| TodosPageError::UnexpectedError(e.into()))?
+        .ok_or(TodosPageError::NotFound)?;
+
+    let labels = labels_repo::list_for_user(&user_id, pool)
+        .await
+        .map_err(|e| TodosPageError::UnexpectedError(e.into()))?;
+
+    let html = TodoRow { todo, labels }.render().expect("render failed");
+    Ok(html_response(html))
+}
+
 // ---------------------------------------------------------------------------
 // DELETE /todos/{id}
 // ---------------------------------------------------------------------------

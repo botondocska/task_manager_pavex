@@ -163,6 +163,58 @@ pub async fn update(
     Ok(Some(todo))
 }
 
+pub async fn toggle_completed(
+    user_id: &str,
+    id: i64,
+    pool: &SqlitePool,
+) -> Result<Option<Todo>, sqlx::Error> {
+    let result = sqlx::query!(
+        r#"UPDATE todos SET completed = NOT completed WHERE id = ? AND user_id = ?"#,
+        id,
+        user_id,
+    )
+    .execute(pool)
+    .await?;
+
+    if result.rows_affected() == 0 {
+        return Ok(None);
+    }
+
+    let row = sqlx::query!(
+        r#"SELECT id, user_id, title, description, duration, rrule, label_id, completed, created_at as "created_at: OffsetDateTime"
+        FROM todos WHERE id = ? AND user_id = ?"#,
+        id,
+        user_id,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    let user_id_parsed = Uuid::parse_str(&row.user_id)
+        .map_err(|e| sqlx::Error::Decode(format!("invalid stored user_id: {e}").into()))?;
+    let rrule = row
+        .rrule
+        .as_deref()
+        .map(RRuleField::from_str)
+        .transpose()
+        .map_err(|e| sqlx::Error::Decode(format!("invalid stored rrule: {e}").into()))?;
+
+    let todo = Todo {
+        id: row.id,
+        user_id: user_id_parsed,
+        title: row.title,
+        description: row.description,
+        duration: row.duration,
+        completed: row.completed != 0,
+        rrule,
+        label_id: row.label_id,
+        created_at: row.created_at,
+    };
+
+    record_today_if_due(user_id, &todo, pool).await;
+
+    Ok(Some(todo))
+}
+
 pub async fn delete(user_id: &str, id: i64, pool: &SqlitePool) -> Result<bool, sqlx::Error> {
     let result = sqlx::query!(
         r#"DELETE FROM todos WHERE id = ? AND user_id = ?"#,

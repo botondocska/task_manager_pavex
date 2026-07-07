@@ -17,3 +17,10 @@ session:
     same_site: "Lax"
   state:
     ttl: "168h"
+
+cookies:
+  crypto_rules:
+    - cookie_names: ["session"]
+      algorithm: "encryption"
+      key: "d+RgVbC9cKJzPJgsXGv2Hht+ooJsCOEFoXTc8zbjA+TSDlhjtA/RtpAzNbY1VYz5XwR7Rap3pVE1ugVlKAJ0yA=="
+      fallbacks: []

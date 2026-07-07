@@ -22,14 +22,17 @@ RUN cargo build --release --package server --bin server
 
 FROM debian:bookworm-slim AS runtime
 WORKDIR /app
+RUN apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/target/release/server bin
 COPY configuration configuration
 RUN mkdir -p /app/data
-ENV PX_PROFILE=production
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+ENV PX_PROFILE=prod
 # Enable backtraces to simplify debugging
 # production panics.
 ENV RUST_BACKTRACE=1
 # We don't want `anyhow` to capture backtraces for
 # "routine" errors. Just panics.
 ENV RUST_LIB_BACKTRACE=0
-ENTRYPOINT ["./bin"]
+ENTRYPOINT ["./entrypoint.sh"]

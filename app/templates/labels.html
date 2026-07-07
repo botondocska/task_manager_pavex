@@ -4,12 +4,12 @@
   <h1 class="mb-6 text-2xl font-bold">Labels</h1>
 
   <form hx-post="/labels" hx-target="#label-list" hx-swap="beforeend"
-        class="mb-6 flex gap-2">
+        class="mb-6 flex flex-col sm:flex-row gap-2">
     <input name="name" type="text" placeholder="Name" required
-           class="input input-bordered flex-1">
+           class="input input-bordered input-lg sm:input-md flex-1">
     <input name="color" type="color" value="#3b82f6"
-           class="h-10 w-10 rounded-full border border-base-300 bg-base-100 p-0">
-    <button type="submit" class="btn btn-primary">
+           class="h-12 w-12 sm:h-10 sm:w-10 rounded-full border border-base-300 bg-base-100 p-0 self-start sm:self-auto">
+    <button type="submit" class="btn btn-primary btn-lg sm:btn-md">
       Add
     </button>
   </form>
