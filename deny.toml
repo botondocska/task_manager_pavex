@@ -1,10 +1,11 @@
+[graph]
 all-features = true
 
 [advisories]
 db-urls = ["https://github.com/rustsec/advisory-db"]
-vulnerability = "deny"
-unmaintained = "warn"
+unmaintained = "workspace"
 yanked = "deny"
-notice = "warn"
 # Add a CVE to this list to "silence" it in CI
-ignore = []
+ignore = [
+    "RUSTSEC-2023-0071", # rsa via jwt-simple, dev-dep only, no patched upstream available
+]
