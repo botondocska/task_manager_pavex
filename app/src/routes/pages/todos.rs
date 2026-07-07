@@ -7,6 +7,7 @@ use crate::{
     schemas::{CreateTodoBody, Label, Todo, UpdateTodoBody},
     session_auth::SessionUserId,
 };
+use crate::session_theme::Theme;
 use askama::Template;
 use htmx_macro::{hx_delete, hx_get, hx_post, hx_put};
 use pavex::{
@@ -82,6 +83,7 @@ struct TodosPage {
     labels: Vec<Label>,
     active_page: &'static str,
     nav_items: &'static [crate::routes::pages::nav::NavItem],
+    theme: Theme,
 }
 
 #[derive(Template)]
@@ -150,8 +152,9 @@ fn html_response(html: String) -> Response {
 pub async fn home_page(
     user: &SessionUserId,
     pool: &SqlitePool,
+    theme: &Theme,
 ) -> Result<Response, TodosPageError> {
-    render_todos_page(user, pool, "todos").await
+    render_todos_page(user, pool, "todos", theme).await
 }
 
 //#[hx_get(path = "/todos/{id}", template = "todo_row.html")]
@@ -183,14 +186,16 @@ pub async fn get_todo_page(
 pub async fn todos_page(
     user: &SessionUserId,
     pool: &SqlitePool,
+    theme: &Theme
 ) -> Result<Response, TodosPageError> {
-    render_todos_page(user, pool, "todos").await
+    render_todos_page(user, pool, "todos", theme).await
 }
 
 async fn render_todos_page(
     user: &SessionUserId,
     pool: &SqlitePool,
     active_page: &'static str,
+    theme: &Theme,
 ) -> Result<Response, TodosPageError> {
     let user_id = user.0.to_string();
 
@@ -206,6 +211,7 @@ async fn render_todos_page(
         labels,
         active_page,
         nav_items: NAV_ITEMS,
+        theme: *theme,
     }
     .render()
     .expect("template render failed");

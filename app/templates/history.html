@@ -56,10 +56,10 @@
               <g>
                   <rect x="{{ bar.x }}" y="{{ chart_height - bar.bar_height }}"
                       width="32" height="{{ bar.bar_height }}"
-                      fill="#3b4252" />
+                      fill="var(--color-base-300)" />
                   <rect x="{{ bar.x }}" y="{{ chart_height - bar.completed_height }}"
                       width="32" height="{{ bar.completed_height }}"
-                      fill="#60a5fa" />
+                      fill="var(--color-primary)" />
                   <text x="{{ bar.x + 16.0 }}" y="{{ chart_height + 17.0 }}"
                       font-size="13" text-anchor="middle" fill="currentColor" opacity="0.6">{{ bar.label }}</text>
                   <text x="{{ bar.x + 16.0 }}" y="{{ bar.count_label_y }}"
@@ -69,9 +69,9 @@
               </g>
               {% endfor %}
               <line x1="0" y1="{{ avg_line_y }}" x2="{{ chart_width }}" y2="{{ avg_line_y }}"
-                  stroke="#f87171" stroke-width="1.5" stroke-dasharray="4,3" />
+                  stroke="var(--color-error)" stroke-width="1.5" stroke-dasharray="4,3" />
               <text x="{{ chart_width - 4.0 }}" y="{{ avg_line_y - 4.0 }}"
-                  font-size="12" text-anchor="end" fill="#f87171">avg {{ avg_percentage }}%</text>
+                  font-size="12" text-anchor="end" fill="var(--color-error)">avg {{ avg_percentage }}%</text>
           </svg>
         </div>
       </div>
@@ -88,10 +88,10 @@
               <g>
                   <rect x="{{ bar.x }}" y="{{ chart_height - bar.bar_height }}"
                       width="32" height="{{ bar.bar_height }}"
-                      fill="#374151" />
+                      fill="var(--color-base-300)" />
                   <rect x="{{ bar.x }}" y="{{ chart_height - bar.completed_height }}"
                       width="32" height="{{ bar.completed_height }}"
-                      fill="#34d399" />
+                      fill="var(--color-success)" />
                   <text x="{{ bar.x + 16.0 }}" y="{{ chart_height + 17.0 }}"
                       font-size="13" text-anchor="middle" fill="currentColor" opacity="0.6">{{ bar.label }}</text>
                   <text x="{{ bar.x + 16.0 }}" y="{{ bar.minutes_label_y }}"
@@ -101,9 +101,9 @@
               </g>
               {% endfor %}
               <line x1="0" y1="{{ duration_avg_line_y }}" x2="{{ chart_width }}" y2="{{ duration_avg_line_y }}"
-                  stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,3" />
+                  stroke="var(--color-success)" stroke-width="1.5" stroke-dasharray="4,3" />
               <text x="{{ chart_width - 4.0 }}" y="{{ duration_avg_line_y - 4.0 }}"
-                  font-size="12" text-anchor="end" fill="#34d399">avg {{ avg_duration_percentage }}%</text>
+                  font-size="12" text-anchor="end" fill="var(--color-success)">avg {{ avg_duration_percentage }}%</text>
           </svg>
         </div>
       </div>

@@ -6,17 +6,20 @@ use pavex::{
     http::{HeaderValue, header::HeaderName},
     request::body::UrlEncodedBody,
 };
+use crate::session_theme::Theme;
 use pavex_session::Session;
 use secrecy::Secret;
 use sqlx::SqlitePool;
 
 #[derive(Template)]
 #[template(path = "login.html")]
-struct LoginPage;
+struct LoginPage {
+    pub theme: Theme,
+}
 
 #[hx_get(path = "/login", template = "login.html")]
-pub fn login_page() -> Response {
-    let html = LoginPage.render().expect("template render failed");
+pub fn login_page(theme: Theme) -> Response {
+    let html = LoginPage { theme }.render().expect("template render failed");
     html_response(html)
 }
 

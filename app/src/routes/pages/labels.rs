@@ -3,6 +3,7 @@ use crate::{
     schemas::{CreateLabelBody, Label, UpdateLabelBody},
     session_auth::SessionUserId,
 };
+use crate::session_theme::Theme;
 use askama::Template;
 use pavex::{
     Response, delete, get,
@@ -18,12 +19,14 @@ struct LabelsPage {
     labels: Vec<Label>,
     active_page: &'static str,
     nav_items: &'static [crate::routes::pages::nav::NavItem],
+    theme: Theme,
 }
 
 #[get(path = "/labels")]
 pub async fn labels_page(
     user: &SessionUserId,
     pool: &SqlitePool,
+    theme: &Theme,
 ) -> Result<Response, LabelsPageError> {
     let labels = repo::list_for_user(&user.0.to_string(), pool)
         .await
@@ -33,6 +36,7 @@ pub async fn labels_page(
         labels,
         active_page: "labels",
         nav_items: NAV_ITEMS,
+        theme: *theme
     }
     .render()
     .expect("template render failed");

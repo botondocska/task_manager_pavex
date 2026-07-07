@@ -8,6 +8,8 @@ pub mod routes;
 pub mod rrule_input;
 pub mod schemas;
 pub mod session_auth;
+pub mod session_theme;
+pub mod static_files;
 pub mod telemetry;
 pub mod todo_history_job;
 

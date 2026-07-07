@@ -1,6 +1,8 @@
 /target
 .env
 data/app.db
+app/tailwind-bin/tailwindcss.exe
+app/tailwind-bin/tailwindcss
 /coverage
 lcov.info
 recipe.json
