@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE todos SET completed = NOT completed WHERE id = ? AND user_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "f82e503c35cc925b2d61ff39ddca78b5cf79fb4c8c47a4ce34f15f181d08d36e"
+}
