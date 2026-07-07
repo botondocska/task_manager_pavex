@@ -17,6 +17,9 @@ COPY --from=planner /app/recipe.json recipe.json
 # Build our project's dependencies, not our application!
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
+# Skip Tailwind build using build.rs (since local dev pushes the compiled CSS to the repo)
+ARG SKIP_TAILWIND_BUILD=1
+ENV SKIP_TAILWIND_BUILD=${SKIP_TAILWIND_BUILD}
 # Build our project
 RUN cargo build --release --package server --bin server
 

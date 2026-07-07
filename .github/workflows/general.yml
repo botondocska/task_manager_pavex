@@ -111,6 +111,8 @@ jobs:
           context: .
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            SKIP_TAILWIND_BUILD=1
 
   deploy:
     name: Deploy to Fly.io
