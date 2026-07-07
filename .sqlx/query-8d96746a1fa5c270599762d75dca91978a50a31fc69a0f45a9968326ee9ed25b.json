@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT id, user_id, title, description, duration, rrule, label_id, completed, created_at as \"created_at: OffsetDateTime\"\n        FROM todos WHERE id = ?",
+  "query": "SELECT id, user_id, duration, rrule, title, description, label_id, completed_at as \"completed_at: OffsetDateTime\", created_at as \"created_at: OffsetDateTime\" \n        FROM todos \n        WHERE user_id = ?",
   "describe": {
     "columns": [
       {
@@ -14,22 +14,22 @@
         "type_info": "Text"
       },
       {
-        "name": "title",
-        "ordinal": 2,
-        "type_info": "Text"
-      },
-      {
-        "name": "description",
-        "ordinal": 3,
-        "type_info": "Text"
-      },
-      {
         "name": "duration",
-        "ordinal": 4,
+        "ordinal": 2,
         "type_info": "Integer"
       },
       {
         "name": "rrule",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "title",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "description",
         "ordinal": 5,
         "type_info": "Text"
       },
@@ -39,9 +39,9 @@
         "type_info": "Integer"
       },
       {
-        "name": "completed",
+        "name": "completed_at: OffsetDateTime",
         "ordinal": 7,
-        "type_info": "Integer"
+        "type_info": "Text"
       },
       {
         "name": "created_at: OffsetDateTime",
@@ -55,14 +55,14 @@
     "nullable": [
       false,
       false,
-      false,
-      true,
-      true,
       true,
       true,
       false,
+      true,
+      true,
+      true,
       false
     ]
   },
-  "hash": "167f9f016b831eff1a298ddd7df500fc7771be31411f4c84411b83b8c9fd5ee3"
+  "hash": "8d96746a1fa5c270599762d75dca91978a50a31fc69a0f45a9968326ee9ed25b"
 }

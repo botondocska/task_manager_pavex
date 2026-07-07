@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 pub async fn list_for_user(user_id: &str, pool: &SqlitePool) -> Result<Vec<Todo>, sqlx::Error> {
     let rows = sqlx::query!(
-        r#"SELECT id, user_id, duration, rrule, title, description, label_id, completed, created_at as "created_at: OffsetDateTime" 
+        r#"SELECT id, user_id, duration, rrule, title, description, label_id, completed_at as "completed_at: OffsetDateTime", created_at as "created_at: OffsetDateTime" 
         FROM todos 
         WHERE user_id = ?"#,
         user_id,
@@ -33,7 +33,7 @@ pub async fn list_for_user(user_id: &str, pool: &SqlitePool) -> Result<Vec<Todo>
                 rrule,
                 title: r.title,
                 description: r.description,
-                completed: r.completed != 0,
+                completed_at: r.completed_at,
                 created_at: r.created_at,
                 label_id: r.label_id,
             })
@@ -47,24 +47,29 @@ pub async fn create(
     pool: &SqlitePool,
 ) -> Result<Todo, sqlx::Error> {
     let rrule_str = fields.rrule.as_ref().map(|r| r.0.to_string());
-    let completed = fields.completed.unwrap_or_default();
+    let completed_at = fields
+        .completed
+        .unwrap_or(false)
+        .then(OffsetDateTime::now_utc);
 
     let id = sqlx::query!(
-        r#"INSERT INTO todos (user_id, title, description, duration, rrule, label_id, completed) VALUES (?, ?, ?, ?, ?, ?, ?)"#,
+        r#"INSERT INTO todos (user_id, title, description, duration, rrule, label_id, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?)"#,
         user_id_str,
         fields.title,
         fields.description,
         fields.duration,
         rrule_str,
         fields.label_id,
-        completed,
+        completed_at,
     )
     .execute(pool)
     .await?
     .last_insert_rowid();
 
     let row = sqlx::query!(
-        r#"SELECT id, user_id, title, description, duration, rrule, label_id, completed, created_at as "created_at: OffsetDateTime"
+        r#"SELECT id, user_id, title, description, duration, rrule, label_id, 
+        completed_at as "completed_at: OffsetDateTime", 
+        created_at as "created_at: OffsetDateTime"
         FROM todos WHERE id = ?"#,
         id,
     )
@@ -87,7 +92,7 @@ pub async fn create(
         duration: row.duration,
         rrule,
         label_id: row.label_id,
-        completed: row.completed != 0,
+        completed_at: row.completed_at,
         created_at: row.created_at,
     };
 
@@ -103,7 +108,10 @@ pub async fn update(
     pool: &SqlitePool,
 ) -> Result<Option<Todo>, sqlx::Error> {
     let rrule_str = fields.rrule.as_ref().map(|r| r.0.to_string());
-    let completed = fields.completed.unwrap_or(false);
+    let completed_at = fields
+        .completed
+        .unwrap_or(false)
+        .then(OffsetDateTime::now_utc);
     let result = sqlx::query!(
         r#"
         UPDATE todos SET
@@ -112,7 +120,7 @@ pub async fn update(
             duration = COALESCE(?, duration),
             rrule = ?,
             label_id = COALESCE(?, label_id),
-            completed = ?
+            completed_at = ?
         WHERE id = ? AND user_id = ?
         "#,
         fields.title,
@@ -120,7 +128,7 @@ pub async fn update(
         fields.duration,
         rrule_str,
         fields.label_id,
-        completed,
+        completed_at,
         id,
         user_id_str,
     )
@@ -132,7 +140,9 @@ pub async fn update(
     }
 
     let row = sqlx::query!(
-        r#"SELECT id, user_id, title, description, duration, rrule, label_id, completed, created_at as "created_at: OffsetDateTime"
+        r#"SELECT id, user_id, title, description, duration, rrule, label_id, 
+        completed_at as "completed_at: OffsetDateTime", 
+        created_at as "created_at: OffsetDateTime"
         FROM todos WHERE id = ? AND user_id = ?"#,
         id,
         user_id_str,
@@ -154,7 +164,7 @@ pub async fn update(
         title: row.title,
         description: row.description,
         duration: row.duration,
-        completed: row.completed != 0,
+        completed_at: row.completed_at,
         rrule,
         label_id: row.label_id,
         created_at: row.created_at,
@@ -168,8 +178,12 @@ pub async fn toggle_completed(
     id: i64,
     pool: &SqlitePool,
 ) -> Result<Option<Todo>, sqlx::Error> {
+    let now = OffsetDateTime::now_utc();
     let result = sqlx::query!(
-        r#"UPDATE todos SET completed = NOT completed WHERE id = ? AND user_id = ?"#,
+        r#"UPDATE todos 
+        SET completed_at = CASE WHEN completed_at IS NULL THEN ? ELSE NULL END 
+        WHERE id = ? AND user_id = ?"#,
+        now,
         id,
         user_id,
     )
@@ -181,7 +195,9 @@ pub async fn toggle_completed(
     }
 
     let row = sqlx::query!(
-        r#"SELECT id, user_id, title, description, duration, rrule, label_id, completed, created_at as "created_at: OffsetDateTime"
+        r#"SELECT id, user_id, title, description, duration, rrule, label_id, 
+        completed_at as "completed_at: OffsetDateTime", 
+        created_at as "created_at: OffsetDateTime"
         FROM todos WHERE id = ? AND user_id = ?"#,
         id,
         user_id,
@@ -204,7 +220,7 @@ pub async fn toggle_completed(
         title: row.title,
         description: row.description,
         duration: row.duration,
-        completed: row.completed != 0,
+        completed_at: row.completed_at,
         rrule,
         label_id: row.label_id,
         created_at: row.created_at,
@@ -243,6 +259,7 @@ async fn record_today_if_due(user_id_str: &str, todo: &Todo, pool: &SqlitePool) 
     }
 
     let today = today_date.to_string();
+    let completed = todo.is_completed_today();
     if let Err(e) = sqlx::query!(
         r#"
         INSERT INTO todo_history (user_id, todo_id, occurrence_date, completed)
@@ -252,7 +269,7 @@ async fn record_today_if_due(user_id_str: &str, todo: &Todo, pool: &SqlitePool) 
         user_id_str,
         todo.id,
         today,
-        todo.completed,
+        completed,
     )
     .execute(pool)
     .await

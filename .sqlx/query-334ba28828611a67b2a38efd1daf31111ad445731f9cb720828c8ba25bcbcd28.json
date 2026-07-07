@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE todos \n        SET completed_at = CASE WHEN completed_at IS NULL THEN ? ELSE NULL END \n        WHERE id = ? AND user_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "334ba28828611a67b2a38efd1daf31111ad445731f9cb720828c8ba25bcbcd28"
+}

@@ -37,9 +37,11 @@ pub async fn record_todays_occurrences(pool: &SqlitePool) -> Result<(), anyhow::
     let today = OffsetDateTime::now_utc().date();
     let today_str = today.to_string();
 
-    let todos = sqlx::query!(r#"SELECT id, user_id, rrule, completed FROM todos"#)
-        .fetch_all(pool)
-        .await?;
+    let todos = sqlx::query!(
+        r#"SELECT id, user_id, rrule, completed_at as "completed_at: OffsetDateTime" FROM todos"#
+    )
+    .fetch_all(pool)
+    .await?;
 
     for todo in todos {
         let is_due_today = match &todo.rrule {
@@ -53,6 +55,10 @@ pub async fn record_todays_occurrences(pool: &SqlitePool) -> Result<(), anyhow::
         if !is_due_today {
             continue;
         }
+        let completed_today = todo
+            .completed_at
+            .map(|ts| ts.date() == today)
+            .unwrap_or(false);
 
         sqlx::query!(
             r#"
@@ -63,16 +69,11 @@ pub async fn record_todays_occurrences(pool: &SqlitePool) -> Result<(), anyhow::
             todo.user_id,
             todo.id,
             today_str,
-            todo.completed,
+            completed_today,
         )
         .execute(pool)
         .await?;
     }
-
-    // Fresh day — clear completion state for the next 24 hours.
-    sqlx::query!(r#"UPDATE todos SET completed = 0"#)
-        .execute(pool)
-        .await?;
 
     Ok(())
 }

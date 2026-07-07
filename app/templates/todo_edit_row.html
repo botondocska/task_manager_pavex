@@ -33,7 +33,7 @@
       </div>
     </div>
     <label class="flex items-center gap-2 text-sm">
-      <input type="checkbox" name="completed" value="true" {% if todo.completed %}checked{% endif %} class="checkbox checkbox-sm">
+      <input type="checkbox" name="completed" value="true" {% if todo.is_completed_today() %}checked{% endif %} class="checkbox checkbox-sm">
       Completed
     </label>
     <label class="flex items-center gap-2 text-sm">

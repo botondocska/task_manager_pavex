@@ -65,7 +65,8 @@ pub struct Todo {
     pub rrule: Option<RRuleField>,
     pub title: String,
     pub description: Option<String>,
-    pub completed: bool,
+    #[serde(with = "time::serde::rfc3339::option")]
+    pub completed_at: Option<OffsetDateTime>,
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
 }
@@ -73,6 +74,16 @@ pub struct Todo {
 impl Todo {
     pub fn has_label(&self, label_id: &i64) -> bool {
         self.label_id.as_ref() == Some(label_id)
+    }
+
+    /// True only if this todo was completed on today's date. A completion
+    /// from a previous day is stale and reads as "not complete" — no
+    /// separate reset step needed, this is computed fresh on every read.
+    pub fn is_completed_today(&self) -> bool {
+        match self.completed_at {
+            Some(ts) => ts.date() == OffsetDateTime::now_utc().date(),
+            None => false,
+        }
     }
 }
 
@@ -123,7 +134,7 @@ mod tests {
             rrule: None,
             title: "test".into(),
             description: None,
-            completed: false,
+            completed_at: None,
             created_at: OffsetDateTime::now_utc(),
         };
         let json = serde_json::to_string(&t).expect("should serialize");
