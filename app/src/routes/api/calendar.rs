@@ -92,6 +92,15 @@ pub struct TodoOccurrence {
     pub title: String,
     pub completed: bool,
     pub label_id: Option<i64>,
+    pub description: Option<String>,
+    pub duration: Option<i64>,
+    pub is_recurring: bool,
+}
+
+impl TodoOccurrence {
+    pub fn has_label(&self, label_id: &i64) -> bool {
+        self.label_id.as_ref() == Some(label_id)
+    }
 }
 
 pub struct DayCell {
@@ -115,6 +124,9 @@ fn due_todos_for_day(
                 title: t.title.clone(),
                 completed: completed.contains(&(t.id, day_str.clone())),
                 label_id: t.label_id,
+                description: t.description.clone(),
+                duration: t.duration,
+                is_recurring: t.rrule.is_some(),
             }),
             _ => None,
         })

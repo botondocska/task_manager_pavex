@@ -3,12 +3,14 @@ use crate::{
     routes::{
         api::{
             calendar::{self, DayCell, MonthGrid, TodoOccurrence, View, YearGrid},
+            labels::repo as labels_repo,
             todo_history,
             todos::repo as todos_repo,
             toggle_history_completion,
         },
         pages::{html_response, nav::NAV_ITEMS},
     },
+    schemas::Label,
     session_auth::CheckedInUser,
 };
 use askama::Template;
@@ -54,6 +56,7 @@ struct CalendarPage {
     day: Option<DayCell>,
     month: Option<MonthGrid>,
     year: Option<YearGrid>,
+    labels: Vec<Label>,
     active_page: &'static str,
     nav_items: &'static [crate::routes::pages::nav::NavItem],
     theme: Theme,
@@ -64,6 +67,7 @@ struct CalendarPage {
 struct DayOccurrenceRow {
     day: DaySingle,
     occ: TodoOccurrence,
+    labels: Vec<Label>,
 }
 
 // Minimal wrapper so template's `day.date` path resolves without needing
@@ -92,6 +96,10 @@ pub async fn calendar_page(
         .unwrap_or(today);
 
     let todos = todos_repo::list_for_user(&user_id, pool)
+        .await
+        .map_err(|e| CalendarPageError::UnexpectedError(e.into()))?;
+
+    let labels = labels_repo::list_for_user(&user_id, pool)
         .await
         .map_err(|e| CalendarPageError::UnexpectedError(e.into()))?;
 
@@ -132,6 +140,7 @@ pub async fn calendar_page(
         day,
         month,
         year,
+        labels,
         active_page: "calendar",
         nav_items: NAV_ITEMS,
         theme: *theme,
@@ -165,7 +174,7 @@ pub async fn toggle_day_occurrence(
     // occurrence. If so, completing it deletes the todo entirely instead
     // of just flipping todo_history.
     let todo_info = sqlx::query!(
-        r#"SELECT rrule FROM todos WHERE id = ? AND user_id = ?"#,
+        r#"SELECT rrule, description, duration FROM todos WHERE id = ? AND user_id = ?"#,
         todo_id,
         user_id,
     )
@@ -210,8 +219,15 @@ pub async fn toggle_day_occurrence(
         .map_err(CalendarPageError::UnexpectedError)?
         .ok_or(CalendarPageError::NotFound)?;
 
-    let row = sqlx::query!(r#"SELECT title, label_id FROM todos WHERE id = ?"#, todo_id)
+    let row = sqlx::query!(
+        r#"SELECT title, label_id, description, duration, rrule FROM todos WHERE id = ?"#,
+        todo_id
+    )
         .fetch_one(pool)
+        .await
+        .map_err(|e| CalendarPageError::UnexpectedError(e.into()))?;
+
+    let labels = labels_repo::list_for_user(&user_id, pool)
         .await
         .map_err(|e| CalendarPageError::UnexpectedError(e.into()))?;
 
@@ -227,7 +243,11 @@ pub async fn toggle_day_occurrence(
             title: row.title,
             completed: new_completed,
             label_id: row.label_id,
+            description: row.description,
+            duration: row.duration,
+            is_recurring: row.rrule.is_some(),
         },
+        labels,
     }
     .render()
     .expect("render failed");
