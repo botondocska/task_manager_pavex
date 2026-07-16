@@ -21,6 +21,7 @@ use pavex::{
     request::{path::PathParams, query::QueryParams},
 };
 use sqlx::SqlitePool;
+use std::collections::HashMap;
 use time::Date;
 
 #[derive(serde::Deserialize)]
@@ -104,27 +105,61 @@ pub async fn calendar_page(
         .map_err(|e| CalendarPageError::UnexpectedError(e.into()))?;
 
     let (range_start, range_end) = calendar::view_range(anchor, view);
+
     let completed = todo_history::completed_occurrences(&user_id, &range_start, &range_end, pool)
         .await
         .map_err(|e| CalendarPageError::UnexpectedError(e.into()))?;
 
+    // Ledger for past days: todo_id -> completed, keyed by date. rrule is
+    // never consulted for day < today (see calendar::due_todos_for_day).
+    let history_occs =
+        todo_history::occurrences_in_range(&user_id, &range_start, &range_end, pool)
+            .await
+            .map_err(|e| CalendarPageError::UnexpectedError(e.into()))?;
+
+    let mut history_by_date: HashMap<String, Vec<(i64, bool)>> = HashMap::new();
+    for h in history_occs {
+        if let Some(todo_id) = h.todo_id {
+            history_by_date
+                .entry(h.occurrence_date)
+                .or_default()
+                .push((todo_id, h.completed));
+        }
+    }
+
     let (day, month, year) = match view {
         View::Day => (
-            Some(calendar::build_day_view(anchor, today, &todos, &completed)),
+            Some(calendar::build_day_view(
+                anchor,
+                today,
+                &todos,
+                &history_by_date,
+                &completed,
+            )),
             None,
             None,
         ),
         View::Month => (
             None,
             Some(calendar::build_month_grid(
-                anchor, today, &todos, &completed,
+                anchor,
+                today,
+                &todos,
+                &history_by_date,
+                &completed,
             )),
             None,
         ),
         View::Year => (
             None,
             None,
-            Some(calendar::build_year_grid(anchor, today, &todos, &completed)),
+            Some(calendar::build_year_grid(
+                anchor,
+                today,
+                &todos,
+                &history_by_date,
+                &completed,
+            )),
         ),
     };
 

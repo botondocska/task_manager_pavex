@@ -1,7 +1,7 @@
 //! Pure calendar-grid construction. No I/O — data in, grid out, unit-testable.
 use crate::rrule_input::is_due_on;
 use crate::schemas::Todo;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use time::{Date, Duration, Month};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -110,12 +110,42 @@ pub struct DayCell {
     pub occurrences: Vec<TodoOccurrence>,
 }
 
+/// `history_by_date` maps "YYYY-MM-DD" -> [(todo_id, completed)], sourced
+/// from `todo_history` for dates in the requested range. Past days read
+/// exclusively from this ledger — rrule is never consulted for the past,
+/// since re-projecting it after an edit can silently disagree with what
+/// actually happened (see todo_history_job for the write side).
 fn due_todos_for_day(
     todos: &[Todo],
     day: Date,
+    today: Date,
+    history_by_date: &HashMap<String, Vec<(i64, bool)>>,
     completed: &HashSet<(i64, String)>,
 ) -> Vec<TodoOccurrence> {
     let day_str = day.to_string();
+
+    if day < today {
+        // Past: ledger only. Todo deleted since -> drop silently.
+        return history_by_date
+            .get(&day_str)
+            .into_iter()
+            .flatten()
+            .filter_map(|(todo_id, completed_flag)| {
+                let t = todos.iter().find(|t| t.id == *todo_id)?;
+                Some(TodoOccurrence {
+                    id: t.id,
+                    title: t.title.clone(),
+                    completed: *completed_flag,
+                    label_id: t.label_id,
+                    description: t.description.clone(),
+                    duration: t.duration,
+                    is_recurring: t.rrule.is_some(),
+                })
+            })
+            .collect();
+    }
+
+    // Today/future: rrule projection, unchanged.
     todos
         .iter()
         .filter_map(|t| match is_due_on(t.rrule.as_ref(), t.created_at, day) {
@@ -150,6 +180,7 @@ pub fn build_month_grid(
     anchor: Date,
     today: Date,
     todos: &[Todo],
+    history_by_date: &HashMap<String, Vec<(i64, bool)>>,
     completed: &HashSet<(i64, String)>,
 ) -> MonthGrid {
     let (grid_start, num_weeks) = month_grid_bounds(anchor.year(), anchor.month());
@@ -163,7 +194,7 @@ pub fn build_month_grid(
                 date,
                 in_current_period: date.month() == anchor.month() && date.year() == anchor.year(),
                 is_today: date == today,
-                occurrences: due_todos_for_day(todos, date, completed),
+                occurrences: due_todos_for_day(todos, date, today, history_by_date, completed),
             });
         }
         weeks.push(WeekRow { days });
@@ -183,13 +214,14 @@ pub fn build_day_view(
     anchor: Date,
     today: Date,
     todos: &[Todo],
+    history_by_date: &HashMap<String, Vec<(i64, bool)>>,
     completed: &HashSet<(i64, String)>,
 ) -> DayCell {
     DayCell {
         date: anchor,
         in_current_period: true,
         is_today: anchor == today,
-        occurrences: due_todos_for_day(todos, anchor, completed),
+        occurrences: due_todos_for_day(todos, anchor, today, history_by_date, completed),
     }
 }
 
@@ -220,6 +252,7 @@ pub fn build_year_grid(
     anchor: Date,
     today: Date,
     todos: &[Todo],
+    history_by_date: &HashMap<String, Vec<(i64, bool)>>,
     completed: &HashSet<(i64, String)>,
 ) -> YearGrid {
     let year = anchor.year();
@@ -234,7 +267,7 @@ pub fn build_year_grid(
             let mut days = Vec::with_capacity(7);
             for d in 0..7 {
                 let date = grid_start + Duration::days(w * 7 + d);
-                let occs = due_todos_for_day(todos, date, completed);
+                let occs = due_todos_for_day(todos, date, today, history_by_date, completed);
                 days.push(MiniDayCell {
                     day_of_month: date.day(),
                     in_current_period: date.month() == month && date.year() == year,
@@ -314,8 +347,10 @@ mod tests {
 
     #[test]
     fn month_grid_starts_on_monday() {
-        // July 2026: 1st is a Wednesday.
-        let grid = build_month_grid(d(2026, 7, 1), d(2026, 7, 15), &[], &HashSet::new());
+        // July 2026: 1st is a Wednesday. Use a future "today" so no day in
+        // this grid is treated as past (keeps this test on the rrule path).
+        let today = d(2026, 6, 1);
+        let grid = build_month_grid(d(2026, 7, 1), today, &[], &HashMap::new(), &HashSet::new());
         assert_eq!(grid.weeks[0].days[0].date.weekday(), time::Weekday::Monday);
         // First week should contain June padding days.
         assert!(!grid.weeks[0].days[0].in_current_period);
@@ -324,7 +359,8 @@ mod tests {
 
     #[test]
     fn month_grid_covers_full_month() {
-        let grid = build_month_grid(d(2026, 7, 1), d(2026, 7, 15), &[], &HashSet::new());
+        let today = d(2026, 6, 1);
+        let grid = build_month_grid(d(2026, 7, 1), today, &[], &HashMap::new(), &HashSet::new());
         let in_period_count = grid
             .weeks
             .iter()
@@ -336,7 +372,8 @@ mod tests {
 
     #[test]
     fn year_grid_has_12_months() {
-        let grid = build_year_grid(d(2026, 1, 1), d(2026, 7, 15), &[], &HashSet::new());
+        let today = d(2025, 1, 1);
+        let grid = build_year_grid(d(2026, 1, 1), today, &[], &HashMap::new(), &HashSet::new());
         assert_eq!(grid.months.len(), 12);
         assert_eq!(grid.months[0].month_label, "Jan");
         assert_eq!(grid.months[11].month_label, "Dec");
@@ -348,5 +385,41 @@ mod tests {
         // July 2026 grid starts Mon Jun 29, ends Sun Aug 2 (5 weeks).
         assert_eq!(start, "2026-06-29");
         assert_eq!(end, "2026-08-02");
+    }
+
+    #[test]
+    fn past_day_reads_from_history_not_rrule() {
+        // Rrule says due only on Mondays from Jul 13. History says a
+        // different (deleted-since) completion happened on Jul 6, a
+        // Monday before dt_start — rrule would say false, history wins
+        // for past days.
+        let todo = Todo {
+            id: 1,
+            user_id: uuid::Uuid::new_v4(),
+            label_id: None,
+            duration: None,
+            rrule: None, // one-off, always "due" per rrule path — irrelevant here
+            title: "Standup".into(),
+            description: None,
+            completed_at: None,
+            created_at: time::OffsetDateTime::now_utc(),
+        };
+        let today = d(2026, 7, 15);
+        let mut history: HashMap<String, Vec<(i64, bool)>> = HashMap::new();
+        history.insert("2026-07-06".to_string(), vec![(1, true)]);
+
+        let day = build_day_view(d(2026, 7, 6), today, &[todo], &history, &HashSet::new());
+        assert_eq!(day.occurrences.len(), 1);
+        assert!(day.occurrences[0].completed);
+    }
+
+    #[test]
+    fn past_day_drops_occurrence_for_deleted_todo() {
+        let today = d(2026, 7, 15);
+        let mut history: HashMap<String, Vec<(i64, bool)>> = HashMap::new();
+        history.insert("2026-07-06".to_string(), vec![(999, true)]); // no matching todo
+
+        let day = build_day_view(d(2026, 7, 6), today, &[], &history, &HashSet::new());
+        assert!(day.occurrences.is_empty());
     }
 }

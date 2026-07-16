@@ -49,6 +49,39 @@ pub struct DurationPeriod {
 // Queries
 // ---------------------------------------------------------------------------
 
+pub struct HistoryOccurrence {
+    pub todo_id: Option<i64>,
+    pub occurrence_date: String,
+    pub completed: bool,
+}
+
+pub async fn occurrences_in_range(
+    user_id: &str,
+    start: &str,
+    end: &str,
+    pool: &SqlitePool,
+) -> Result<Vec<HistoryOccurrence>, sqlx::Error> {
+    let rows = sqlx::query!(
+        r#"SELECT todo_id, occurrence_date, completed as "completed: bool"
+           FROM todo_history
+           WHERE user_id = ? AND occurrence_date BETWEEN ? AND ?"#,
+        user_id,
+        start,
+        end,
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|r| HistoryOccurrence {
+            todo_id: r.todo_id,
+            occurrence_date: r.occurrence_date,
+            completed: r.completed,
+        })
+        .collect())
+}
+
 pub async fn history_counts(
     user_id: &str,
     period: Period,
