@@ -178,6 +178,26 @@ pub async fn toggle_completed(
     id: i64,
     pool: &SqlitePool,
 ) -> Result<Option<Todo>, sqlx::Error> {
+    let current = sqlx::query!(
+        r#"SELECT rrule, completed_at as "completed_at: OffsetDateTime" FROM todos
+           WHERE id = ? AND user_id = ?"#,
+        id,
+        user_id,
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    let Some(current) = current else {
+        return Ok(None);
+    };
+
+    // One-off, currently incomplete, being marked complete -> delete instead
+    // of flipping completed_at. No future occurrences to track.
+    if current.rrule.is_none() && current.completed_at.is_none() {
+        delete(user_id, id, pool).await?;
+        return Ok(None);
+    }
+
     let now = OffsetDateTime::now_utc();
     let result = sqlx::query!(
         r#"UPDATE todos 
@@ -246,7 +266,11 @@ pub async fn delete(user_id: &str, id: i64, pool: &SqlitePool) -> Result<bool, s
 async fn record_today_if_due(user_id_str: &str, todo: &Todo, pool: &SqlitePool) {
     let today_date = time::OffsetDateTime::now_utc().date();
 
-    let is_due_today = match crate::rrule_input::is_due_on(todo.rrule.as_ref(), today_date) {
+    let is_due_today = match crate::rrule_input::is_due_on(
+        todo.rrule.as_ref(),
+        todo.created_at,
+        today_date,
+    ) {
         Ok(due) => due,
         Err(e) => {
             tracing::error!(error = %e, todo_id = todo.id, "failed to evaluate rrule due-check");

@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT last_visit FROM users WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "last_visit",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "8af355e711eb5c30013a65649835d70d8883e929e1f59a8eabde0cbffe8b339a"
+}

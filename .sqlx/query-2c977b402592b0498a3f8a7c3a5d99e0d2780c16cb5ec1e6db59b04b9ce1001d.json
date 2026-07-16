@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT th.completed as \"completed: bool\"\n           FROM todo_history th\n           JOIN todos t ON t.id = th.todo_id\n           WHERE th.todo_id = ? AND th.occurrence_date = ? AND t.user_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "completed: bool",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "2c977b402592b0498a3f8a7c3a5d99e0d2780c16cb5ec1e6db59b04b9ce1001d"
+}

@@ -12,6 +12,7 @@ pub mod session_theme;
 pub mod static_files;
 pub mod telemetry;
 pub mod todo_history_job;
+pub mod visit_tracking;
 
 pub use blueprint::blueprint;
 pub use todo_history_job::occurs_on;

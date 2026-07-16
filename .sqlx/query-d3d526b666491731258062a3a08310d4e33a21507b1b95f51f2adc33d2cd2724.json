@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT id, user_id, rrule, completed_at as \"completed_at: OffsetDateTime\" FROM todos",
+  "query": "SELECT id, rrule, completed_at as \"completed_at: OffsetDateTime\",\n           created_at as \"created_at: OffsetDateTime\"\n           FROM todos WHERE user_id = ?",
   "describe": {
     "columns": [
       {
@@ -9,30 +9,30 @@
         "type_info": "Integer"
       },
       {
-        "name": "user_id",
+        "name": "rrule",
         "ordinal": 1,
         "type_info": "Text"
       },
       {
-        "name": "rrule",
+        "name": "completed_at: OffsetDateTime",
         "ordinal": 2,
         "type_info": "Text"
       },
       {
-        "name": "completed_at: OffsetDateTime",
+        "name": "created_at: OffsetDateTime",
         "ordinal": 3,
         "type_info": "Text"
       }
     ],
     "parameters": {
-      "Right": 0
+      "Right": 1
     },
     "nullable": [
       false,
-      false,
       true,
-      true
+      true,
+      false
     ]
   },
-  "hash": "9b6aff3e9185b6565dcb80f4e8210cc33a93be5ec24a5860bc530743983d7ab1"
+  "hash": "d3d526b666491731258062a3a08310d4e33a21507b1b95f51f2adc33d2cd2724"
 }

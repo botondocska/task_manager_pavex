@@ -1,14 +1,13 @@
+use crate::routes::pages::html_response;
 use crate::session_theme::Theme;
 use crate::{
     routes::{api::labels::repo, pages::nav::NAV_ITEMS},
     schemas::{CreateLabelBody, Label, UpdateLabelBody},
-    session_auth::SessionUserId,
+    session_auth::CheckedInUser,
 };
 use askama::Template;
 use pavex::{
-    Response, delete, get,
-    http::HeaderValue,
-    post, put,
+    Response, delete, get, post, put,
     request::{body::UrlEncodedBody, path::PathParams},
 };
 use sqlx::SqlitePool;
@@ -24,7 +23,7 @@ struct LabelsPage {
 
 #[get(path = "/labels")]
 pub async fn labels_page(
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
     theme: &Theme,
 ) -> Result<Response, LabelsPageError> {
@@ -52,7 +51,7 @@ struct LabelRow {
 #[post(path = "/labels")]
 pub async fn create_label_page(
     body: UrlEncodedBody<CreateLabelBody>,
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
 ) -> Result<Response, LabelsPageError> {
     let user_id = user.0.to_string();
@@ -74,7 +73,7 @@ pub struct LabelIdParam {
 pub async fn update_label_page(
     params: PathParams<LabelIdParam>,
     body: UrlEncodedBody<UpdateLabelBody>,
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
 ) -> Result<Response, LabelsPageError> {
     let LabelIdParam { id } = params.0;
@@ -92,7 +91,7 @@ pub async fn update_label_page(
 #[delete(path = "/labels/{id}")]
 pub async fn delete_label_page(
     params: PathParams<LabelIdParam>,
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
 ) -> Result<Response, LabelsPageError> {
     let LabelIdParam { id } = params.0;
@@ -104,13 +103,6 @@ pub async fn delete_label_page(
 
     // htmx swaps this element out with an empty response → element removed.
     Ok(Response::ok().set_typed_body(""))
-}
-
-fn html_response(html: String) -> Response {
-    Response::ok().set_typed_body(html).insert_header(
-        pavex::http::header::CONTENT_TYPE,
-        HeaderValue::from_static("text/html; charset=utf-8"),
-    )
 }
 
 #[derive(Debug, thiserror::Error)]

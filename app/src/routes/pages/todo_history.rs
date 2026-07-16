@@ -8,7 +8,7 @@ use crate::{
         pages::nav::NAV_ITEMS,
     },
     schemas::Label,
-    session_auth::SessionUserId,
+    session_auth::CheckedInUser,
 };
 use askama::Template;
 use htmx_macro::hx_get;
@@ -204,7 +204,7 @@ impl HistoryPageError {
 #[hx_get(path = "/history", template = "history.html")]
 pub async fn history_page(
     query: pavex::request::query::QueryParams<HistoryQuery>,
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
     theme: &Theme,
 ) -> Result<Response, HistoryPageError> {

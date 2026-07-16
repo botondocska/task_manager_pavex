@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT occurrence_date FROM todo_history\n           WHERE todo_id = ? ORDER BY occurrence_date DESC LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "occurrence_date",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "15e30698a0fc952900de7b6e3814bc09616df6be4b01aadb6d102b109f84b7b7"
+}

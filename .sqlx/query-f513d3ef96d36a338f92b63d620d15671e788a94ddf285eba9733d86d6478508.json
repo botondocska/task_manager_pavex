@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE todo_history SET completed = ? WHERE todo_id = ? AND occurrence_date = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "f513d3ef96d36a338f92b63d620d15671e788a94ddf285eba9733d86d6478508"
+}

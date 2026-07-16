@@ -1,0 +1,106 @@
+{% extends "nav.html" %}
+{% block title %}Calendar{% endblock %}
+{% block page_content %}
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <h1 class="text-2xl font-bold">Calendar</h1>
+
+    <div class="flex items-center gap-2">
+      <div class="join">
+        <a href="?view={{ view }}&anchor={{ prev_anchor }}"
+           class="join-item btn btn-sm">«</a>
+        <a href="?view={{ view }}&anchor={{ today_anchor }}"
+           class="join-item btn btn-sm">Today</a>
+        <a href="?view={{ view }}&anchor={{ next_anchor }}"
+           class="join-item btn btn-sm">»</a>
+      </div>
+
+      <div class="join">
+        <a href="?view=day&anchor={{ anchor }}"
+           class="join-item btn btn-sm {% if view == "day" %}btn-active{% endif %}">Day</a>
+        <a href="?view=month&anchor={{ anchor }}"
+           class="join-item btn btn-sm {% if view == "month" %}btn-active{% endif %}">Month</a>
+        <a href="?view=year&anchor={{ anchor }}"
+           class="join-item btn btn-sm {% if view == "year" %}btn-active{% endif %}">Year</a>
+      </div>
+    </div>
+  </div>
+
+  {% if let Some(month) = month %}
+  <div class="bg-base-100 border border-base-300 rounded-lg shadow-md overflow-hidden">
+    <h2 class="text-lg font-semibold px-4 pt-4">{{ month.month_label }}</h2>
+    <div class="grid grid-cols-7 gap-px bg-base-300 mt-3 text-xs sm:text-sm">
+      {% for wd in ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] %}
+        <div class="bg-base-200 text-center py-1 font-medium opacity-60">{{ wd }}</div>
+      {% endfor %}
+
+      {% for week in month.weeks %}
+        {% for day in week.days %}
+          <a href="?view=day&anchor={{ day.date }}"
+             class="bg-base-100 min-h-16 sm:min-h-24 p-1 sm:p-2 flex flex-col gap-1
+                    {% if !day.in_current_period %}opacity-40{% endif %}
+                    hover:bg-base-200 transition-colors">
+            <span class="text-xs sm:text-sm {% if day.is_today %}badge badge-primary badge-sm{% endif %}">
+              {{ day.date.day() }}
+            </span>
+            <div class="flex flex-col gap-0.5 overflow-hidden">
+              {% for occ in day.occurrences %}
+                {% if loop.index0 < 3 %}
+                <span class="text-[10px] sm:text-xs truncate px-1 rounded
+                             {% if occ.completed %}line-through opacity-50 bg-base-200{% else %}bg-primary/10{% endif %}">
+                  {{ occ.title }}
+                </span>
+                {% endif %}
+              {% endfor %}
+              {% if day.occurrences.len() > 3 %}
+                <span class="text-[10px] opacity-50">+{{ day.occurrences.len() - 3 }} more</span>
+              {% endif %}
+            </div>
+          </a>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if let Some(day) = day %}
+  <div class="bg-base-100 border border-base-300 p-4 sm:p-6 rounded-lg shadow-md">
+    <h2 class="text-lg font-semibold mb-4">
+      {{ day.date }}
+      {% if day.is_today %}<span class="badge badge-primary badge-sm ml-2">Today</span>{% endif %}
+    </h2>
+    <ul class="flex flex-col gap-2">
+      {% for occ in day.occurrences %}
+        {% include "day_occurrence_row.html" %}
+      {% endfor %}
+      {% if day.occurrences.is_empty() %}
+        <li class="opacity-50 text-sm py-2">No todos due.</li>
+      {% endif %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if let Some(year) = year %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for m in year.months %}
+      <a href="?view=month&anchor={{ m.month }}"
+         class="bg-base-100 border border-base-300 rounded-lg shadow-md p-3 hover:shadow-lg transition-shadow block">
+        <h3 class="text-sm font-semibold mb-2">{{ m.month_label }}</h3>
+        <div class="grid grid-cols-7 gap-0.5">
+          {% for week in m.weeks %}
+            {% for day in week %}
+              <span class="aspect-square flex items-center justify-center text-[9px] rounded
+                           {% if !day.in_current_period %}opacity-20
+                           {% else if day.is_today %}bg-primary text-primary-content font-bold
+                           {% else if day.total > 0 && day.completed == day.total %}bg-success/30
+                           {% else if day.total > 0 %}bg-warning/30
+                           {% endif %}">
+                {{ day.day_of_month }}
+              </span>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endblock %}

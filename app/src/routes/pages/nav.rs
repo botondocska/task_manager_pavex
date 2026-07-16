@@ -20,4 +20,9 @@ pub const NAV_ITEMS: &[NavItem] = &[
         path: "/history",
         label: "History",
     },
+    NavItem {
+        key: "calendar",
+        path: "/calendar",
+        label: "Calendar",
+    },
 ];

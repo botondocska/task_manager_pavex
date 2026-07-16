@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT rrule, completed_at as \"completed_at: OffsetDateTime\" FROM todos\n           WHERE id = ? AND user_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "rrule",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "completed_at: OffsetDateTime",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      true,
+      true
+    ]
+  },
+  "hash": "51112c932ea15cb28074ec849a1e4907362fe2098c03f32ea801db0bf592a6a1"
+}

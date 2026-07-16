@@ -43,13 +43,6 @@ async fn _main() -> anyhow::Result<()> {
         .await
         .context("Failed to build the application state")?;
 
-    // Fetch the pool out of application state to hand to the background job.
-    // Exact accessor depends on how ApplicationState exposes it — see note below.
-    let pool = application_state.pool.clone();
-    tokio::spawn(async move {
-        app::todo_history_job::run_daily_loop(pool).await;
-    });
-
     tracing::info!("Starting to listen for incoming requests at {}", address);
     let server_handle = run(server_builder, application_state);
     graceful_shutdown(server_handle.clone(), shutdown_timeout).await;

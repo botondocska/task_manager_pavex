@@ -1,4 +1,5 @@
 use sqlx::{QueryBuilder, SqlitePool};
+use std::collections::HashSet;
 use time::{Date, Duration as TimeDuration};
 
 // ---------------------------------------------------------------------------
@@ -260,4 +261,98 @@ pub async fn duration_counts_filled(
 
     result.reverse();
     Ok(result)
+}
+
+/// Returns the set of (todo_id, occurrence_date) pairs marked completed,
+/// for a user, within [start, end] inclusive. Date strings are "YYYY-MM-DD".
+pub async fn completed_occurrences(
+    user_id: &str,
+    start: &str,
+    end: &str,
+    pool: &SqlitePool,
+) -> Result<HashSet<(i64, String)>, sqlx::Error> {
+    let rows = sqlx::query!(
+        r#"
+        SELECT todo_id as "todo_id!: i64", occurrence_date
+        FROM todo_history
+        WHERE user_id = ? AND completed = 1
+          AND occurrence_date >= ? AND occurrence_date <= ?
+        "#,
+        user_id,
+        start,
+        end,
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|r| (r.todo_id, r.occurrence_date))
+        .collect())
+}
+
+pub async fn toggle_history_completion(
+    user_id: &str,
+    todo_id: i64,
+    occurrence_date: &str,
+    pool: &SqlitePool,
+) -> Result<Option<bool>, anyhow::Error> {
+    let existing = sqlx::query!(
+        r#"SELECT th.completed as "completed: bool"
+           FROM todo_history th
+           JOIN todos t ON t.id = th.todo_id
+           WHERE th.todo_id = ? AND th.occurrence_date = ? AND t.user_id = ?"#,
+        todo_id,
+        occurrence_date,
+        user_id,
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    let Some(row) = existing else { return Ok(None) };
+    let new_val = !row.completed;
+
+    // Always write the history row for the actual occurrence date.
+    sqlx::query!(
+        r#"UPDATE todo_history SET completed = ? WHERE todo_id = ? AND occurrence_date = ?"#,
+        new_val,
+        todo_id,
+        occurrence_date,
+    )
+    .execute(pool)
+    .await?;
+
+    // If this is the most recent occurrence, keep todos.completed_at in
+    // sync -- stamped with THIS occurrence's date, not "now".
+    let most_recent = sqlx::query!(
+        r#"SELECT occurrence_date FROM todo_history
+           WHERE todo_id = ? ORDER BY occurrence_date DESC LIMIT 1"#,
+        todo_id,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    if most_recent.occurrence_date == occurrence_date {
+        if new_val {
+            let occurrence_ts = format!("{occurrence_date}T12:00:00.000Z");
+            sqlx::query!(
+                r#"UPDATE todos SET completed_at = ? WHERE id = ? AND user_id = ?"#,
+                occurrence_ts,
+                todo_id,
+                user_id,
+            )
+            .execute(pool)
+            .await?;
+        } else {
+            sqlx::query!(
+                r#"UPDATE todos SET completed_at = NULL WHERE id = ? AND user_id = ?"#,
+                todo_id,
+                user_id,
+            )
+            .execute(pool)
+            .await?;
+        }
+    }
+
+    Ok(Some(new_val))
 }

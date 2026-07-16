@@ -87,16 +87,14 @@ async fn insert_user_record(
     let user_id = uuid::Uuid::new_v4();
     let user_id_str = user_id.to_string();
     let password_hash = password_hash.expose_secret();
-
+    let today = time::OffsetDateTime::now_utc().date().to_string();
     sqlx::query!(
-        r#"
-        INSERT INTO users (id, username, email, password_hash)
-        VALUES (?, ?, ?, ?)
-        "#,
+        r#"INSERT INTO users (id, username, email, password_hash, last_visit) VALUES (?, ?, ?, ?, ?)"#,
         user_id_str,
         username,
         email,
         password_hash,
+        today,
     )
     .execute(pool)
     .await

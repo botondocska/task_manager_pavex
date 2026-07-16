@@ -5,10 +5,14 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// Pure decision: does `rrule` (if any) produce an occurrence on `day`?
 /// `None` (a one-off todo) is always due. No I/O, no logging — just data in,
 /// data out, fully unit-testable.
-pub fn is_due_on(rrule: Option<&RRuleField>, day: time::Date) -> Result<bool, anyhow::Error> {
+pub fn is_due_on(
+    rrule: Option<&RRuleField>,
+    created_at: time::OffsetDateTime,
+    day: time::Date,
+) -> Result<bool, anyhow::Error> {
     match rrule {
         Some(r) => crate::todo_history_job::occurs_on(&r.0, day),
-        None => Ok(true),
+        None => Ok(created_at.date() == day),
     }
 }
 
@@ -207,8 +211,9 @@ mod tests {
 
     #[test]
     fn one_off_todo_always_due() {
-        assert!(is_due_on(None, date(2026, 7, 10)).unwrap());
-        assert!(is_due_on(None, date(2026, 1, 1)).unwrap());
+        let created = time::OffsetDateTime::now_utc().replace_date(date(2026, 7, 10));
+        assert!(is_due_on(None, created, date(2026, 7, 10)).unwrap());
+        assert!(is_due_on(None, created, date(2026, 1, 1)).unwrap());
     }
 
     #[test]
@@ -226,8 +231,9 @@ mod tests {
         let field = RRuleField(set);
 
         // 2026-07-06 is a Monday, 2026-07-07 is a Tuesday.
-        assert!(is_due_on(Some(&field), date(2026, 7, 6)).unwrap());
-        assert!(!is_due_on(Some(&field), date(2026, 7, 7)).unwrap());
+        let dt_start = time::OffsetDateTime::now_utc().replace_date(date(2026, 7, 6));
+        assert!(is_due_on(Some(&field), dt_start, date(2026, 7, 6)).unwrap());
+        assert!(!is_due_on(Some(&field), dt_start, date(2026, 7, 7)).unwrap());
     }
 
     #[test]
@@ -244,8 +250,10 @@ mod tests {
         let set = build_rrule_set(raw).unwrap();
         let field = RRuleField(set);
 
-        assert!(is_due_on(Some(&field), date(2026, 7, 1)).unwrap());
-        assert!(is_due_on(Some(&field), date(2026, 7, 15)).unwrap());
+        let dt_start = time::OffsetDateTime::now_utc().replace_date(date(2026, 7, 1));
+        assert!(is_due_on(Some(&field), dt_start, date(2026, 7, 1)).unwrap());
+        let dt_start = time::OffsetDateTime::now_utc().replace_date(date(2026, 7, 15));
+        assert!(is_due_on(Some(&field), dt_start, date(2026, 7, 15)).unwrap());
     }
 
     #[test]

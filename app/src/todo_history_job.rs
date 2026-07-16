@@ -1,79 +1,64 @@
-use chrono::TimeZone;
+use chrono::{DateTime, Datelike, TimeZone};
 use rrule::{RRuleSet, Tz};
 use sqlx::SqlitePool;
-use std::str::FromStr;
-use time::OffsetDateTime;
+use time::{Date, OffsetDateTime};
 
-/// Runs once immediately (catch-up for "today"), then loops forever,
-/// waiting until the next UTC midnight and running again each cycle.
-pub async fn run_daily_loop(pool: SqlitePool) {
-    if let Err(e) = record_todays_occurrences(&pool).await {
-        tracing::error!(error = %e, "daily history job failed (startup run)");
-    }
-
-    loop {
-        let now = OffsetDateTime::now_utc();
-        let tomorrow_midnight = (now.date() + time::Duration::days(1))
-            .midnight()
-            .assume_utc();
-        let sleep_for = tomorrow_midnight - now;
-
-        tokio::time::sleep(std::time::Duration::from_secs(
-            sleep_for.whole_seconds().max(0) as u64,
-        ))
-        .await;
-
-        if let Err(e) = record_todays_occurrences(&pool).await {
-            tracing::error!(error = %e, "daily history job failed");
-        }
-    }
-}
-
-/// Runs once per day (see wiring below). For every todo across every user,
-/// determines whether today is a due occurrence (per its rrule, or — for
-/// one-off todos — whether today is its creation day) and inserts a
-/// `todo_history` row for it if one doesn't already exist for today.
-pub async fn record_todays_occurrences(pool: &SqlitePool) -> Result<(), anyhow::Error> {
-    let today = OffsetDateTime::now_utc().date();
-    let today_str = today.to_string();
-
+pub async fn record_occurrences_for_user_range(
+    user_id: &str,
+    from: Date,
+    to: Date,
+    pool: &SqlitePool,
+) -> Result<(), anyhow::Error> {
     let todos = sqlx::query!(
-        r#"SELECT id, user_id, rrule, completed_at as "completed_at: OffsetDateTime" FROM todos"#
+        r#"SELECT id, rrule, completed_at as "completed_at: OffsetDateTime",
+           created_at as "created_at: OffsetDateTime"
+           FROM todos WHERE user_id = ?"#,
+        user_id,
     )
     .fetch_all(pool)
     .await?;
 
-    for todo in todos {
-        let is_due_today = match &todo.rrule {
-            Some(rrule_str) => {
-                let set = RRuleSet::from_str(rrule_str)?;
-                occurs_on(&set, today)?
+    let mut rows: Vec<(i64, String, bool)> = Vec::new();
+
+    for todo in &todos {
+        let completed_that_day =
+            |d: Date| todo.completed_at.map(|ts| ts.date() == d).unwrap_or(false);
+
+        match &todo.rrule {
+            None => {
+                let created_date = todo.created_at.date();
+                if created_date >= from && created_date <= to {
+                    rows.push((todo.id, created_date.to_string(), false));
+                }
             }
-            None => true,
-        };
-
-        if !is_due_today {
-            continue;
+            Some(rrule_str) => {
+                let set: RRuleSet = rrule_str.parse()?;
+                let start = day_start_tz(from)?;
+                let end = day_end_tz(to)?;
+                let occurrences = set.after(start).before(end).all(u16::MAX).dates;
+                for occ in occurrences {
+                    let d = time_date_from_chrono(occ);
+                    rows.push((todo.id, d.to_string(), completed_that_day(d)));
+                }
+            }
         }
-        let completed_today = todo
-            .completed_at
-            .map(|ts| ts.date() == today)
-            .unwrap_or(false);
-
-        sqlx::query!(
-            r#"
-            INSERT INTO todo_history (user_id, todo_id, occurrence_date, completed)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(todo_id, occurrence_date) DO UPDATE SET completed = excluded.completed
-            "#,
-            todo.user_id,
-            todo.id,
-            today_str,
-            completed_today,
-        )
-        .execute(pool)
-        .await?;
     }
+
+    if rows.is_empty() {
+        return Ok(());
+    }
+
+    let mut qb = sqlx::QueryBuilder::new(
+        "INSERT INTO todo_history (user_id, todo_id, occurrence_date, completed) ",
+    );
+    qb.push_values(rows, |mut b, (todo_id, date, completed)| {
+        b.push_bind(user_id)
+            .push_bind(todo_id)
+            .push_bind(date)
+            .push_bind(completed);
+    });
+    qb.push(" ON CONFLICT(todo_id, occurrence_date) DO UPDATE SET completed = excluded.completed");
+    qb.build().execute(pool).await?;
 
     Ok(())
 }
@@ -94,4 +79,27 @@ pub fn occurs_on(set: &RRuleSet, day: time::Date) -> Result<bool, anyhow::Error>
 
     let bounded = set.clone().after(start).before(end);
     Ok(!bounded.all(1).dates.is_empty())
+}
+
+fn day_start_tz(day: Date) -> Result<DateTime<Tz>, anyhow::Error> {
+    Tz::UTC
+        .with_ymd_and_hms(day.year(), day.month() as u32, day.day() as u32, 0, 0, 0)
+        .single()
+        .ok_or_else(|| anyhow::anyhow!("invalid date"))
+}
+
+fn day_end_tz(day: Date) -> Result<DateTime<Tz>, anyhow::Error> {
+    Tz::UTC
+        .with_ymd_and_hms(day.year(), day.month() as u32, day.day() as u32, 23, 59, 59)
+        .single()
+        .ok_or_else(|| anyhow::anyhow!("invalid date"))
+}
+
+fn time_date_from_chrono(dt: DateTime<Tz>) -> Date {
+    Date::from_calendar_date(
+        dt.year(),
+        time::Month::try_from(dt.month() as u8).expect("valid month"),
+        dt.day() as u8,
+    )
+    .expect("valid date from chrono")
 }

@@ -2,17 +2,16 @@ use crate::session_theme::Theme;
 use crate::{
     routes::{
         api::{labels::repo as labels_repo, todos::repo as todos_repo},
-        pages::nav::NAV_ITEMS,
+        pages::{html_response, nav::NAV_ITEMS},
     },
     rrule_input::{RRuleField, RRuleInput, build_rrule_set},
     schemas::{CreateTodoBody, Label, Todo, UpdateTodoBody},
-    session_auth::SessionUserId,
+    session_auth::CheckedInUser,
 };
 use askama::Template;
 use htmx_macro::{hx_delete, hx_get, hx_post, hx_put};
 use pavex::{
     Response,
-    http::HeaderValue,
     request::{body::UrlEncodedBody, path::PathParams},
 };
 use sqlx::SqlitePool;
@@ -137,20 +136,13 @@ impl TodosPageError {
     }
 }
 
-fn html_response(html: String) -> Response {
-    Response::ok().set_typed_body(html).insert_header(
-        pavex::http::header::CONTENT_TYPE,
-        HeaderValue::from_static("text/html; charset=utf-8"),
-    )
-}
-
 // ---------------------------------------------------------------------------
 // GET / and /todos — full page
 // ---------------------------------------------------------------------------
 
 #[hx_get(path = "/", template = "todos.html")]
 pub async fn home_page(
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
     theme: &Theme,
 ) -> Result<Response, TodosPageError> {
@@ -161,7 +153,7 @@ pub async fn home_page(
 #[hx_get(path = "/todos/{id}")]
 pub async fn get_todo_page(
     params: PathParams<TodoIdParam>,
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
 ) -> Result<Response, TodosPageError> {
     let TodoIdParam { id } = params.0;
@@ -184,7 +176,7 @@ pub async fn get_todo_page(
 
 #[hx_get(path = "/todos", template = "todos.html")]
 pub async fn todos_page(
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
     theme: &Theme,
 ) -> Result<Response, TodosPageError> {
@@ -192,7 +184,7 @@ pub async fn todos_page(
 }
 
 async fn render_todos_page(
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
     active_page: &'static str,
     theme: &Theme,
@@ -226,7 +218,7 @@ async fn render_todos_page(
 #[hx_post(path = "/todos")]
 pub async fn create_todo_page(
     body: UrlEncodedBody<TodoForm>,
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
 ) -> Result<Response, TodosPageError> {
     let form = body.0;
@@ -268,7 +260,7 @@ pub struct TodoIdParam {
 #[hx_get(path = "/todos/{id}/edit")]
 pub async fn edit_todo_page(
     params: PathParams<TodoIdParam>,
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
 ) -> Result<Response, TodosPageError> {
     let TodoIdParam { id } = params.0;
@@ -312,7 +304,7 @@ pub async fn edit_todo_page(
 pub async fn update_todo_page(
     params: PathParams<TodoIdParam>,
     body: UrlEncodedBody<TodoForm>,
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
 ) -> Result<Response, TodosPageError> {
     let TodoIdParam { id } = params.0;
@@ -346,23 +338,29 @@ pub async fn update_todo_page(
 #[hx_put(path = "/todos/{id}/toggle")]
 pub async fn toggle_todo_page(
     params: PathParams<TodoIdParam>,
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
 ) -> Result<Response, TodosPageError> {
     let TodoIdParam { id } = params.0;
     let user_id = user.0.to_string();
 
-    let todo = todos_repo::toggle_completed(&user_id, id, pool)
+    match todos_repo::toggle_completed(&user_id, id, pool)
         .await
         .map_err(|e| TodosPageError::UnexpectedError(e.into()))?
-        .ok_or(TodosPageError::NotFound)?;
-
-    let labels = labels_repo::list_for_user(&user_id, pool)
-        .await
-        .map_err(|e| TodosPageError::UnexpectedError(e.into()))?;
-
-    let html = TodoRow { todo, labels }.render().expect("render failed");
-    Ok(html_response(html))
+    {
+        Some(todo) => {
+            let labels = labels_repo::list_for_user(&user_id, pool)
+                .await
+                .map_err(|e| TodosPageError::UnexpectedError(e.into()))?;
+            let html = TodoRow { todo, labels }.render().expect("render failed");
+            Ok(html_response(html))
+        }
+        None => {
+            // Either not found, or one-off was completed & deleted.
+            // Either way, htmx should remove the row.
+            Ok(Response::ok().set_typed_body(""))
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -372,7 +370,7 @@ pub async fn toggle_todo_page(
 #[hx_delete(path = "/todos/{id}")]
 pub async fn delete_todo_page(
     params: PathParams<TodoIdParam>,
-    user: &SessionUserId,
+    user: &CheckedInUser,
     pool: &SqlitePool,
 ) -> Result<Response, TodosPageError> {
     let TodoIdParam { id } = params.0;

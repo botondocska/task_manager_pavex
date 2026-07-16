@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT completed as \"completed: bool\" FROM todo_history\n               WHERE todo_id = ? AND occurrence_date = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "completed: bool",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "74d8dff974c13343ec7a5eaef8f78554fbc0870135e0d5be683b8f4af5cbac9d"
+}
