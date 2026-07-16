@@ -112,10 +112,9 @@ pub async fn calendar_page(
 
     // Ledger for past days: todo_id -> completed, keyed by date. rrule is
     // never consulted for day < today (see calendar::due_todos_for_day).
-    let history_occs =
-        todo_history::occurrences_in_range(&user_id, &range_start, &range_end, pool)
-            .await
-            .map_err(|e| CalendarPageError::UnexpectedError(e.into()))?;
+    let history_occs = todo_history::occurrences_in_range(&user_id, &range_start, &range_end, pool)
+        .await
+        .map_err(|e| CalendarPageError::UnexpectedError(e.into()))?;
 
     let mut history_by_date: HashMap<String, Vec<(i64, bool)>> = HashMap::new();
     for h in history_occs {

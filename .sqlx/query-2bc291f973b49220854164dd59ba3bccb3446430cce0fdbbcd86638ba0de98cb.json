@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT todo_id, occurrence_date, completed as \"completed: bool\"\n           FROM todo_history\n           WHERE user_id = ? AND occurrence_date BETWEEN ? AND ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "todo_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "occurrence_date",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "completed: bool",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": [
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "2bc291f973b49220854164dd59ba3bccb3446430cce0fdbbcd86638ba0de98cb"
+}
