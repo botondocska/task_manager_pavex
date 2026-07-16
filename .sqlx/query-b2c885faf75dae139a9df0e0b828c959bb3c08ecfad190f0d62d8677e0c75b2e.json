@@ -1,0 +1,44 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT title, label_id, description, duration, rrule FROM todos WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "title",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "label_id",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "description",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "duration",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "rrule",
+        "ordinal": 4,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "b2c885faf75dae139a9df0e0b828c959bb3c08ecfad190f0d62d8677e0c75b2e"
+}

@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT rrule, description, duration FROM todos WHERE id = ? AND user_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "rrule",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "description",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "duration",
+        "ordinal": 2,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "0158af0ed915c519abc68440b8f87e1dc68646b2714802f05f0b2b903a6a6f4a"
+}
