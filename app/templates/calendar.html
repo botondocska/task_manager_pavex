@@ -46,7 +46,18 @@
               {% for occ in day.occurrences %}
                 {% if loop.index0 < 3 %}
                 <span class="text-[10px] sm:text-xs truncate px-1 rounded
-                             {% if occ.completed %}line-through opacity-50 bg-base-200{% else %}bg-primary/10{% endif %}">
+                             {% if occ.completed %}line-through opacity-50 bg-base-200{% endif %}"
+                  {% if !occ.completed %}
+                    {% if let Some(_) = occ.label_id %}
+                      {% for label in labels %}
+                        {% if occ.has_label(label.id) %}
+style="background-color: color-mix(in srgb, {{ label.color }} 15%, var(--color-base-100));"
+                        {% endif %}
+                      {% endfor %}
+                    {% else %}
+style="background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-base-100));"
+                    {% endif %}
+                  {% endif %}>
                   {{ occ.title }}
                 </span>
                 {% endif %}

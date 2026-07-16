@@ -1,5 +1,12 @@
-<li id="todo-{{ todo.id }}" class="bg-base-100 border border-base-300 rounded-lg px-4 py-3">
-  <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+<li id="todo-{{ todo.id }}" class="bg-base-100 border border-base-300 rounded-lg px-4 py-3"
+    {% if let Some(_) = todo.label_id %}
+      {% for label in labels %}
+        {% if todo.has_label(&label.id) %}
+  style="background-color: color-mix(in srgb, {{ label.color }} 15%, var(--color-base-100));"
+        {% endif %}
+      {% endfor %}
+    {% endif %}>
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
     <div class="flex items-start gap-3">
       <input type="checkbox" {% if todo.is_completed_today() %}checked{% endif %}
              hx-put="/todos/{{ todo.id }}/toggle" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML"

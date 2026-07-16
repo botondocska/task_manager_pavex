@@ -223,9 +223,9 @@ pub async fn toggle_day_occurrence(
         r#"SELECT title, label_id, description, duration, rrule FROM todos WHERE id = ?"#,
         todo_id
     )
-        .fetch_one(pool)
-        .await
-        .map_err(|e| CalendarPageError::UnexpectedError(e.into()))?;
+    .fetch_one(pool)
+    .await
+    .map_err(|e| CalendarPageError::UnexpectedError(e.into()))?;
 
     let labels = labels_repo::list_for_user(&user_id, pool)
         .await
