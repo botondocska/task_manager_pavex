@@ -35,6 +35,11 @@
             {% if include_unlabeled %}checked{% endif %}>
           No label
         </label>
+        <label class="flex items-center gap-2 py-1">
+          <input type="checkbox" name="include_one_off" value="on" class="checkbox checkbox-md sm:checkbox-sm"
+            {% if include_one_off %}checked{% endif %}>
+          Include one-off todos
+        </label>
       </div>
     </div>
 

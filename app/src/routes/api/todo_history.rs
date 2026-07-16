@@ -54,6 +54,7 @@ pub async fn history_counts(
     period: Period,
     num_periods: i64,
     label_filter: &LabelFilter,
+    include_one_off: bool,
     pool: &SqlitePool,
 ) -> Result<Vec<PeriodCount>, sqlx::Error> {
     let fmt = period.sql_strftime_format();
@@ -70,7 +71,7 @@ pub async fn history_counts(
     );
     qb.push_bind(user_id);
 
-    push_label_filter(&mut qb, label_filter);
+    push_filters(&mut qb, label_filter, include_one_off);
 
     qb.push(" GROUP BY period_start ORDER BY period_start DESC LIMIT ");
     qb.push_bind(num_periods);
@@ -95,6 +96,7 @@ pub async fn duration_counts(
     period: Period,
     num_periods: i64,
     label_filter: &LabelFilter,
+    include_one_off: bool,
     pool: &SqlitePool,
 ) -> Result<Vec<DurationPeriod>, sqlx::Error> {
     let fmt = period.sql_strftime_format();
@@ -111,7 +113,7 @@ pub async fn duration_counts(
     );
     qb.push_bind(user_id);
 
-    push_label_filter(&mut qb, label_filter);
+    push_filters(&mut qb, label_filter, include_one_off);
 
     qb.push(" GROUP BY period_start ORDER BY period_start DESC LIMIT ");
     qb.push_bind(num_periods);
@@ -133,7 +135,14 @@ pub async fn duration_counts(
         .collect())
 }
 
-fn push_label_filter(qb: &mut QueryBuilder<'_, sqlx::Sqlite>, label_filter: &LabelFilter) {
+/// Applies label filter and one-off filter to the WHERE clause.
+/// `t.rrule IS NULL` marks a one-off todo (no recurrence rule).
+/// When `include_one_off` is false, those rows are excluded.
+fn push_filters(
+    qb: &mut QueryBuilder<'_, sqlx::Sqlite>,
+    label_filter: &LabelFilter,
+    include_one_off: bool,
+) {
     match label_filter {
         LabelFilter::All => {}
         LabelFilter::Selected {
@@ -162,6 +171,10 @@ fn push_label_filter(qb: &mut QueryBuilder<'_, sqlx::Sqlite>, label_filter: &Lab
 
             qb.push(")");
         }
+    }
+
+    if !include_one_off {
+        qb.push(" AND t.rrule IS NOT NULL");
     }
 }
 
@@ -204,12 +217,21 @@ pub async fn history_counts_filled(
     period: Period,
     num_periods: i64,
     label_filter: &LabelFilter,
+    include_one_off: bool,
     pool: &SqlitePool,
 ) -> Result<Vec<PeriodCount>, sqlx::Error> {
     let today = time::OffsetDateTime::now_utc().date();
     let expected = expected_period_keys(period, num_periods, today);
 
-    let found = history_counts(user_id, period, num_periods, label_filter, pool).await?;
+    let found = history_counts(
+        user_id,
+        period,
+        num_periods,
+        label_filter,
+        include_one_off,
+        pool,
+    )
+    .await?;
     let found_map: std::collections::HashMap<String, (i64, i64)> = found
         .into_iter()
         .map(|p| (p.period_start, (p.completed_count, p.total_count)))
@@ -236,12 +258,21 @@ pub async fn duration_counts_filled(
     period: Period,
     num_periods: i64,
     label_filter: &LabelFilter,
+    include_one_off: bool,
     pool: &SqlitePool,
 ) -> Result<Vec<DurationPeriod>, sqlx::Error> {
     let today = time::OffsetDateTime::now_utc().date();
     let expected = expected_period_keys(period, num_periods, today);
 
-    let found = duration_counts(user_id, period, num_periods, label_filter, pool).await?;
+    let found = duration_counts(
+        user_id,
+        period,
+        num_periods,
+        label_filter,
+        include_one_off,
+        pool,
+    )
+    .await?;
     let found_map: std::collections::HashMap<String, (i64, i64)> = found
         .into_iter()
         .map(|p| (p.period_start, (p.completed_minutes, p.total_minutes)))

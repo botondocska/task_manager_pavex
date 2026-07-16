@@ -167,6 +167,7 @@ struct HistoryPage {
     labels: Vec<Label>,
     selected_label_ids: Vec<i64>,
     include_unlabeled: bool,
+    include_one_off: bool,
     period: String, // "day" | "month" | "year", for form pre-selection
     num_periods: i64,
     avg_line_y: f64,
@@ -185,6 +186,7 @@ pub struct HistoryQuery {
     #[serde(default)]
     pub label_ids: Vec<i64>,
     pub include_unlabeled: Option<String>,
+    pub include_one_off: Option<String>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -211,6 +213,8 @@ pub async fn history_page(
     let q = query.0;
     let user_id = user.0.to_string();
 
+    let is_fresh_load = q.period.is_none() && q.count.is_none() && q.label_ids.is_empty();
+
     let period_str = q.period.unwrap_or_else(|| "day".to_string());
     let period = match period_str.as_str() {
         "month" => Period::Month,
@@ -220,6 +224,12 @@ pub async fn history_page(
     let num_periods = q.count.unwrap_or(14).clamp(2, 60);
 
     let include_unlabeled = q.include_unlabeled.is_some();
+    let include_one_off = if is_fresh_load {
+        true
+    } else {
+        q.include_one_off.is_some()
+    };
+
     let label_filter = if q.label_ids.is_empty() && !include_unlabeled {
         LabelFilter::All
     } else {
@@ -229,10 +239,16 @@ pub async fn history_page(
         }
     };
 
-    let counts =
-        todo_history::history_counts_filled(&user_id, period, num_periods, &label_filter, pool)
-            .await
-            .map_err(|e| HistoryPageError::UnexpectedError(e.into()))?;
+    let counts = todo_history::history_counts_filled(
+        &user_id,
+        period,
+        num_periods,
+        &label_filter,
+        include_one_off,
+        pool,
+    )
+    .await
+    .map_err(|e| HistoryPageError::UnexpectedError(e.into()))?;
 
     let avg_percentage: f64 = {
         let completed_sum: i64 = counts.iter().map(|c| c.completed_count).sum();
@@ -248,10 +264,16 @@ pub async fn history_page(
 
     let bars = build_chart_bars(&counts, &period);
 
-    let duration_counts =
-        todo_history::duration_counts_filled(&user_id, period, num_periods, &label_filter, pool)
-            .await
-            .map_err(|e| HistoryPageError::UnexpectedError(e.into()))?;
+    let duration_counts = todo_history::duration_counts_filled(
+        &user_id,
+        period,
+        num_periods,
+        &label_filter,
+        include_one_off,
+        pool,
+    )
+    .await
+    .map_err(|e| HistoryPageError::UnexpectedError(e.into()))?;
 
     let avg_duration_percentage: f64 = {
         let completed_sum: i64 = duration_counts.iter().map(|c| c.completed_minutes).sum();
@@ -279,6 +301,7 @@ pub async fn history_page(
         labels,
         selected_label_ids: q.label_ids,
         include_unlabeled,
+        include_one_off,
         period: period_str,
         avg_percentage,
         avg_line_y,
