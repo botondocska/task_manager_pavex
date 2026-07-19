@@ -86,6 +86,16 @@ struct TodosPage {
 }
 
 #[derive(Template)]
+#[template(path = "flashcards.html")]
+struct FlashcardsPage {
+    todos: Vec<Todo>,
+    labels: Vec<Label>,
+    active_page: &'static str,
+    nav_items: &'static [crate::routes::pages::nav::NavItem],
+    theme: Theme,
+}
+
+#[derive(Template)]
 #[template(path = "todo_row.html")]
 struct TodoRow {
     todo: Todo,
@@ -140,13 +150,50 @@ impl TodosPageError {
 // GET / and /todos — full page
 // ---------------------------------------------------------------------------
 
-#[hx_get(path = "/", template = "todos.html")]
+#[hx_get(path = "/", template = "flashcards.html")]
 pub async fn home_page(
     user: &CheckedInUser,
     pool: &SqlitePool,
     theme: &Theme,
 ) -> Result<Response, TodosPageError> {
-    render_todos_page(user, pool, "todos", theme).await
+    render_flashcards_page(user, pool, theme).await
+}
+
+#[hx_get(path = "/todos/flashcards", template = "flashcards.html")]
+pub async fn flashcards_page(
+    user: &CheckedInUser,
+    pool: &SqlitePool,
+    theme: &Theme,
+) -> Result<Response, TodosPageError> {
+    render_flashcards_page(user, pool, theme).await
+}
+
+async fn render_flashcards_page(
+    user: &CheckedInUser,
+    pool: &SqlitePool,
+    theme: &Theme,
+) -> Result<Response, TodosPageError> {
+    let user_id = user.0.to_string();
+
+    let mut todos = todos_repo::list_for_user(&user_id, pool)
+        .await
+        .map_err(|e| TodosPageError::UnexpectedError(e.into()))?;
+    todos.retain(|t| !t.is_completed_today());
+
+    let labels = labels_repo::list_for_user(&user_id, pool)
+        .await
+        .map_err(|e| TodosPageError::UnexpectedError(e.into()))?;
+
+    let html = FlashcardsPage {
+        todos,
+        labels,
+        active_page: "flashcards",
+        nav_items: NAV_ITEMS,
+        theme: *theme,
+    }
+    .render()
+    .expect("render failed");
+    Ok(html_response(html))
 }
 
 //#[hx_get(path = "/todos/{id}", template = "todo_row.html")]

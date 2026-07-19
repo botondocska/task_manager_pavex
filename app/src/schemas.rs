@@ -85,6 +85,10 @@ impl Todo {
             None => false,
         }
     }
+
+    pub fn start_date_key(&self) -> Option<i64> {
+        self.rrule.as_ref().map(|r| r.0.get_dt_start().timestamp())
+    }
 }
 
 #[derive(serde::Deserialize)]
@@ -139,5 +143,57 @@ mod tests {
         };
         let json = serde_json::to_string(&t).expect("should serialize");
         println!("{json}");
+    }
+
+    #[test]
+    fn sort_by_start_datetime_time_matters_within_same_day() {
+        use crate::rrule_input::RRuleField;
+        use crate::rrule_input::{RRuleInput, build_rrule_set};
+
+        fn todo_with_start(id: i64, dt_start: &str) -> Todo {
+            let raw = RRuleInput {
+                dt_start: dt_start.to_string(),
+                freq: "daily".to_string(),
+                interval: None,
+                by_weekday: None,
+                end_type: "never".to_string(),
+                count: None,
+                until: None,
+            };
+            let set = build_rrule_set(raw).unwrap();
+            Todo {
+                id,
+                user_id: uuid::Uuid::new_v4(),
+                label_id: None,
+                duration: None,
+                rrule: Some(RRuleField(set)),
+                title: format!("todo-{id}"),
+                description: None,
+                completed_at: None,
+                created_at: OffsetDateTime::now_utc(),
+            }
+        }
+
+        // Same day, different times — 9am must sort before 5pm.
+        let morning = todo_with_start(1, "2026-07-20T09:00");
+        let evening = todo_with_start(2, "2026-07-20T17:00");
+        let no_start = Todo {
+            id: 3,
+            user_id: uuid::Uuid::new_v4(),
+            label_id: None,
+            duration: None,
+            rrule: None,
+            title: "no-rrule".into(),
+            description: None,
+            completed_at: None,
+            created_at: OffsetDateTime::now_utc(),
+        };
+
+        let mut todos = vec![evening.clone(), no_start.clone(), morning.clone()];
+        todos.sort_by_key(|t| t.start_date_key().unwrap_or(i64::MAX));
+
+        assert_eq!(todos[0].id, 1); // morning first
+        assert_eq!(todos[1].id, 2); // evening second
+        assert_eq!(todos[2].id, 3); // no start date last
     }
 }

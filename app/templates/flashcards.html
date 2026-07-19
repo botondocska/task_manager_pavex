@@ -1,0 +1,172 @@
+{% extends "nav.html" %}
+{% block title %}Flashcards{% endblock %}
+{% block page_content %}
+
+<style>
+  #card-stack { perspective: 800px; }
+  .flash-card {
+    transform: translateX(calc(var(--dx, 0px))) rotate(calc(var(--dx, 0px) / 20));
+    transition: transform 0.2s ease;
+  }
+  .flash-card.dragging { transition: none; }
+  .flash-card.fly-right { transform: translateX(600px) rotate(30deg); opacity: 0; }
+  .flash-card.fly-left { transform: translateX(-600px) rotate(-30deg); opacity: 0; }
+</style>
+
+<div class="flex flex-col items-center gap-6 py-8">
+  <h1 class="text-2xl font-bold">Today's Todos</h1>
+
+  <div id="card-stack" class="relative w-full max-w-sm h-64">
+    <div id="empty-state" class="hidden text-center opacity-60 mt-24">
+      Nothing left. Nice work.
+    </div>
+  </div>
+
+  <div class="flex gap-4">
+    <button id="btn-skip" class="btn btn-outline">Skip</button>
+    <button id="btn-done" class="btn btn-primary">Done</button>
+  </div>
+</div>
+
+<script id="todo-data" type="application/json">
+{{ todos|json|safe }}
+</script>
+<script id="label-data" type="application/json">
+{{ labels|json|safe }}
+</script>
+
+<script>
+(function() {
+  const todos = JSON.parse(document.getElementById('todo-data').textContent);
+  const labels = JSON.parse(document.getElementById('label-data').textContent);
+  let idx = 0;
+  const stack = document.getElementById('card-stack');
+  const empty = document.getElementById('empty-state');
+
+  function labelFor(labelId) {
+    return labels.find(l => l.id === labelId);
+  }
+
+  function showEmpty() {
+    empty.classList.remove('hidden');
+    document.getElementById('btn-skip').disabled = true;
+    document.getElementById('btn-done').disabled = true;
+  }
+
+  function render() {
+    const old = stack.querySelector('.flash-card');
+    if (old) old.remove();
+
+    if (idx >= todos.length) {
+      showEmpty();
+      return;
+    }
+
+    const t = todos[idx];
+    const label = t.labelId != null ? labelFor(t.labelId) : null;
+
+    const card = document.createElement('div');
+    card.className = 'flash-card absolute inset-0 border border-base-300 rounded-lg shadow-lg p-6 flex flex-col justify-between cursor-grab select-none';
+    card.style.backgroundColor = label
+      ? `color-mix(in srgb, ${label.color} 15%, var(--color-base-100))`
+      : 'var(--color-base-100)';
+
+    card.innerHTML = `
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <h2 class="text-xl font-semibold">${escapeHtml(t.title)}</h2>
+          ${label ? `
+            <span class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full" style="background-color: ${escapeHtml(label.color)}"></span>
+              <span class="text-xs opacity-70">${escapeHtml(label.name)}</span>
+            </span>` : ''}
+        </div>
+        ${t.description ? `<p class="opacity-70 mt-2 text-sm">${escapeHtml(t.description)}</p>` : ''}
+        ${t.duration ? `<span class="text-xs opacity-70">${t.duration} min</span>` : ''}
+      </div>
+      <div class="text-xs opacity-50">Swipe right: done · left: skip</div>
+    `;
+    stack.appendChild(card);
+    attachSwipe(card, t.id);
+  }
+
+  function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function attachSwipe(card, todoId) {
+    let startX = 0, dx = 0, dragging = false;
+
+    function onDown(e) {
+      dragging = true;
+      startX = (e.touches ? e.touches[0].clientX : e.clientX);
+      card.classList.add('dragging');
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      const x = (e.touches ? e.touches[0].clientX : e.clientX);
+      dx = x - startX;
+      card.style.setProperty('--dx', `${dx}px`);
+    }
+    function onUp() {
+      if (!dragging) return;
+      dragging = false;
+      card.classList.remove('dragging');
+      if (dx > 100) {
+        completeSwipe(card, todoId, true);
+      } else if (dx < -100) {
+        completeSwipe(card, todoId, false);
+      } else {
+        card.style.setProperty('--dx', '0px');
+      }
+      dx = 0;
+    }
+
+    card.addEventListener('mousedown', onDown);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    card.addEventListener('touchstart', onDown, { passive: true });
+    card.addEventListener('touchmove', onMove, { passive: true });
+    card.addEventListener('touchend', onUp);
+  }
+
+  function completeSwipe(card, todoId, done) {
+    card.classList.add(done ? 'fly-right' : 'fly-left');
+
+    if (done) {
+      fetch(`/todos/${todoId}/toggle`, { method: 'PUT' })
+        .then(res => {
+          if (res.ok) {
+            idx++;
+            render();
+          } else {
+            // request failed — snap card back, don't advance
+            card.classList.remove('fly-right', 'fly-left');
+            card.style.setProperty('--dx', '0px');
+          }
+        })
+        .catch(() => {
+          card.classList.remove('fly-right', 'fly-left');
+          card.style.setProperty('--dx', '0px');
+        });
+    } else {
+      // skip — no server call, just advance after the fly-out animation
+      setTimeout(() => { idx++; render(); }, 200);
+    }
+  }
+
+  document.getElementById('btn-done').addEventListener('click', () => {
+    const card = stack.querySelector('.flash-card');
+    if (card) completeSwipe(card, todos[idx].id, true);
+  });
+  document.getElementById('btn-skip').addEventListener('click', () => {
+    const card = stack.querySelector('.flash-card');
+    if (card) completeSwipe(card, todos[idx].id, false);
+  });
+
+  render();
+})();
+</script>
+{% endblock %}

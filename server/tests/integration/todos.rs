@@ -217,3 +217,21 @@ fn extract_todo_id(html: &str) -> i64 {
         .parse()
         .expect("todo id was not a valid i64")
 }
+
+#[tokio::test]
+async fn flashcards_page_returns_200() {
+    let api = TestApi::spawn().await;
+    let cookie = api
+        .signup_session("alice", "alice@example.com", "hunter22")
+        .await;
+
+    let response = api
+        .api_client
+        .get(&format!("{}/todos/flashcards", api.api_address))
+        .header("Cookie", cookie)
+        .send()
+        .await
+        .unwrap();
+
+    assert_eq!(response.status().as_u16(), StatusCode::OK.as_u16());
+}

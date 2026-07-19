@@ -6,8 +6,13 @@ pub struct NavItem {
 
 pub const NAV_ITEMS: &[NavItem] = &[
     NavItem {
-        key: "todos",
+        key: "flashcards",
         path: "/",
+        label: "Today",
+    },
+    NavItem {
+        key: "todos",
+        path: "/todos",
         label: "Todos",
     },
     NavItem {

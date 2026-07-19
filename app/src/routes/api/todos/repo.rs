@@ -15,30 +15,32 @@ pub async fn list_for_user(user_id: &str, pool: &SqlitePool) -> Result<Vec<Todo>
     .fetch_all(pool)
     .await?;
 
-    rows.into_iter()
-        .map(|r| {
-            let user_id = Uuid::parse_str(&r.user_id)
-                .map_err(|e| sqlx::Error::Decode(format!("invalid stored user_id: {e}").into()))?;
-            let rrule = r
-                .rrule
-                .as_deref()
-                .map(RRuleField::from_str)
-                .transpose()
-                .map_err(|e| sqlx::Error::Decode(format!("invalid stored rrule: {e}").into()))?;
+    let mut todos = Vec::with_capacity(rows.len());
+    for r in rows {
+        let user_id = Uuid::parse_str(&r.user_id)
+            .map_err(|e| sqlx::Error::Decode(format!("invalid stored user_id: {e}").into()))?;
+        let rrule = r
+            .rrule
+            .as_deref()
+            .map(RRuleField::from_str)
+            .transpose()
+            .map_err(|e| sqlx::Error::Decode(format!("invalid stored rrule: {e}").into()))?;
 
-            Ok(Todo {
-                user_id,
-                id: r.id,
-                duration: r.duration,
-                rrule,
-                title: r.title,
-                description: r.description,
-                completed_at: r.completed_at,
-                created_at: r.created_at,
-                label_id: r.label_id,
-            })
-        })
-        .collect()
+        todos.push(Todo {
+            user_id,
+            id: r.id,
+            duration: r.duration,
+            rrule,
+            title: r.title,
+            description: r.description,
+            completed_at: r.completed_at,
+            created_at: r.created_at,
+            label_id: r.label_id,
+        });
+    }
+
+    todos.sort_by_key(|t| t.start_date_key().unwrap_or(i64::MAX));
+    Ok(todos)
 }
 
 pub async fn create(

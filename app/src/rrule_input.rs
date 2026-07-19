@@ -210,10 +210,10 @@ mod tests {
     }
 
     #[test]
-    fn one_off_todo_always_due() {
+    fn one_off_todo_is_due_only_on_creation_date() {
         let created = time::OffsetDateTime::now_utc().replace_date(date(2026, 7, 10));
         assert!(is_due_on(None, created, date(2026, 7, 10)).unwrap());
-        assert!(is_due_on(None, created, date(2026, 1, 1)).unwrap());
+        assert!(!is_due_on(None, created, date(2026, 1, 1)).unwrap());
     }
 
     #[test]
